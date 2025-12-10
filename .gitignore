@@ -1,0 +1,76 @@
+# Système d'exploitation
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# IDEs / éditeurs
+.idea/
+*.iml
+*.iws
+.vscode/
+*.sublime-*
+*.swp
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnp/
+.pnp.js
+
+# PHP / Composer
+/vendor/
+composer.phar
+/.phpunit.result.cache
+.phpunit.result.cache
+
+# Environnements locaux / secrets
+.env
+.env.*.local
+.env.local
+.env.backup
+
+# Frameworks / caches / stockage (Laravel / Symfony etc.)
+storage/
+var/
+bootstrap/cache/
+public/build/
+build/
+dist/
+cache/
+tmp/
+temp/
+
+# Logs / rapports / couverture
+*.log
+logs/
+coverage/
+coverage.*
+report/
+reports/
+
+# Clés / certificats
+*.key
+*.pem
+*.crt
+*.p12
+*.jks
+
+# Fichiers générés et binaires
+*.exe
+*.dll
+*.so
+*.dylib
+*.class
+
+# OS spécifiques
+Thumbs.db
+desktop.ini
+
+# Autres
+.idea/
+out/
+!.gitkeep
