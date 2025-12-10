@@ -1,0 +1,24 @@
+/* Ta couleur perso */
+.bg-custom-dark {
+    background-color: #201318 !important; /* !important force la couleur sur Bootstrap */
+    color: white !important;
+    border: 1px solid #201318;
+}
+
+.bg-custom-dark:hover {
+    background-color: #3a222b !important; /* Une version un peu plus claire */
+    color: white;
+}
+
+.font-handwritten {
+    font-family: 'Amatic SC', cursive;
+    letter-spacing: 5px;
+}
+
+body {
+    font-family: 'Oswald', sans-serif;
+}
+
+.navbar-custom {
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+}

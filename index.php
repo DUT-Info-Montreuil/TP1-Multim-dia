@@ -1,16 +1,25 @@
 <?php
-session_start();
-// require_once 'connexion.php'; // Si tu en as besoin
-
-// 1. On ouvre la mémoire tampon
+// 1. Est-ce que ob_start() est bien au tout début ?
 ob_start();
 
-// ... TON CODE DE ROUTAGE (Switch case pour les modules) ...
-// ex: $mod = new ModAccueil();
+// ... Ton code de connexion ...
 
-// 2. On récupère tout ce qui a été affiché par le module
+$module = isset($_GET['module']) ? $_GET['module'] : 'accueil'; // Si pas de module, on va sur 'accueil'
+
+switch ($module) {
+    case 'accueil':
+        // 2. Est-ce que tu inclus bien le fichier ?
+        require_once 'modules/mod_accueil/mod_accueil.php';
+        // 3. IMPORTANT : Est-ce que tu crées l'objet ? (Le new Mod...)
+        $mod = new ModAccueil();
+        break;
+
+    // ... autres cases ...
+}
+
+// 4. Est-ce que tu récupères le contenu ?
 $tampon = ob_get_clean();
 
-// 3. On inclut le template (qui contient Bootstrap et affiche $tampon)
+// 5. Est-ce que tu appelles le template ?
 require_once 'template.php';
 ?>
