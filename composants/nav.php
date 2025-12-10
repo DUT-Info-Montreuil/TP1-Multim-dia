@@ -6,8 +6,8 @@
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
-            <ul class="navbar-nav mx-auto fs-5">
+        <div class="collapse navbar-collapse justify-content-center text-end" id="navbarNav">
+            <ul class="navbar-nav mx-lg-auto fs-5 align-items-end">
                 <li class="nav-item"><a class="nav-link text-white mx-3" href="#">Nos buvettes</a></li>
                 <li class="nav-item"><a class="nav-link text-white mx-3" href="#">Notre histoire</a></li>
                 <li class="nav-item"><a class="nav-link text-white mx-3" href="#">Galerie</a></li>
