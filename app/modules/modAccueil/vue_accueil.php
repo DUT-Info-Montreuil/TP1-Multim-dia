@@ -3,7 +3,7 @@ class VueAccueil {
     public function afficherAccueil() {
         ?>
         <div class="vh-100 d-flex align-items-center justify-content-center position-relative"
-             style="background-image: url('img/main.jpg');
+             style="background-image: url('public/img/main.jpg');
                     background-size: cover;
                     background-position: center;">
 
