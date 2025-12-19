@@ -1,4 +1,6 @@
 <?php
+
+session_start();
 ob_start();
 
 $module = isset($_GET['module']) ? $_GET['module'] : 'accueil';

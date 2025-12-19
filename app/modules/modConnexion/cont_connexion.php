@@ -1,28 +1,53 @@
 <?php
 require_once 'vue_connexion.php';
+require_once 'modele_connexion.php';
 
 class ContConnexion {
     private $vue;
+    private $modele;
 
     public function __construct() {
         $this->vue = new VueConnexion();
+        $this->modele = new ModeleConnexion();
     }
 
     public function exec() {
-        // Logique de routage interne au module de connexion
-        $action = isset($_GET['action']) ? $_GET['action'] : 'afficher_inscription';
+        $action = isset($_GET['action']) ? $_GET['action'] : 'afficher_connexion';
 
         switch ($action) {
+            case 'verifie_connexion':
+                $user = $this->modele->verifierConnexion($_POST['login'], $_POST['password']);
+                if ($user) {
+                    $_SESSION['user'] = $user;
+                    header('Location: index.php?module=accueil');
+                } else {
+                    echo "Erreur d'identifiants";
+                    $this->vue->afficherFormulaireConnexion();
+                }
+                break;
+
+            case 'valider_inscription':
+                $succes = $this->modele->inscrireUtilisateur(
+                    $_POST['numine'],
+                    $_POST['utilisateur'],
+                    $_POST['password'],
+                    $_POST['statut']
+                );
+                if ($succes) {
+                    header('Location: index.php?module=connexion&action=afficher_connexion');
+                } else {
+                    echo "Erreur : INE déjà existant";
+                    $this->vue->afficherFormulaireInscription();
+                }
+                break;
+
             case 'afficher_inscription':
                 $this->vue->afficherFormulaireInscription();
                 break;
-            case 'afficher_connexion':
-                $this->vue->afficherFormulaireConnexion();
-                break;
+
             default:
-                $this->vue->afficherFormulaireInscription();
+                $this->vue->afficherFormulaireConnexion();
                 break;
         }
     }
 }
-?>

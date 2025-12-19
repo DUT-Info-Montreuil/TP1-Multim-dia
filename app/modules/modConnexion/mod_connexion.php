@@ -3,8 +3,8 @@ require_once 'cont_connexion.php';
 
 class ModConnexion {
     public function __construct() {
-        $cont = new ContConnexion();
-        $cont->exec();
+        $controleur = new ContConnexion();
+        $controleur->exec();
     }
 }
 ?>
