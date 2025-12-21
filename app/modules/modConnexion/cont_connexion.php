@@ -28,10 +28,8 @@ class ContConnexion {
 
             case 'valider_inscription':
                 $succes = $this->modele->inscrireUtilisateur(
-                    $_POST['numine'],
                     $_POST['utilisateur'],
-                    $_POST['password'],
-                    $_POST['statut']
+                    $_POST['password']
                 );
                 if ($succes) {
                     header('Location: index.php?module=connexion&action=afficher_connexion');

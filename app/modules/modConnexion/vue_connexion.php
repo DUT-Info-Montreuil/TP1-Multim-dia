@@ -62,16 +62,6 @@ class VueConnexion {
                 <form method="post" action="index.php?module=connexion&action=valider_inscription">
 
                     <div class="mb-3 text-center">
-                        <label for="numine" class="form-label ">Numéro INE</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3">
-                                <i class="bi bi-backpack"></i>
-                            </span>
-                        <input type="text" class="form-control border-start-0 rounded-end-pill" id="numine" name="numine" required>
-                        </div>
-                    </div>
-
-                    <div class="mb-3 text-center">
                         <label for="utilisateur" class="form-label ">Utilisateur</label>
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3">
@@ -88,17 +78,6 @@ class VueConnexion {
                                 <i class="bi bi-lock"></i>
                             </span>
                             <input type="password" class="form-control border-start-0 rounded-end-pill" id="password" name="password" required>
-                        </div>
-                    </div>
-
-                    <div class="mb-4 d-flex justify-content-center gap-5">
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="statut" id="etudiant" value="etudiant" checked>
-                            <label class="form-check-label" for="etudiant">Je suis un étudiant</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="statut" id="enseignant" value="enseignant">
-                            <label class="form-check-label" for="enseignant">Je suis un enseignant</label>
                         </div>
                     </div>
 
