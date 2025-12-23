@@ -8,11 +8,25 @@
 
         <div class="collapse navbar-collapse justify-content-center text-end" id="navbarNav">
             <ul class="navbar-nav mx-lg-auto fs-5 align-items-end">
+
                 <li class="nav-item"><a class="nav-link text-white mx-3" href="index.php?module=buvettes">Nos buvettes</a></li>
+
+                <?php if (isset($_SESSION['user']) && isset($_SESSION['id_buvette'])): ?>
+                    <li class="nav-item">
+                        <a class="nav-link text-white mx-3" href="index.php?module=menu&action=afficher&id_buvette=<?= $_SESSION['id_buvette'] ?>">
+                            La Carte
+                        </a>
+                    </li>
+                <?php endif; ?>
+
                 <li class="nav-item"><a class="nav-link text-white mx-3" href="#">Notre histoire</a></li>
                 <li class="nav-item"><a class="nav-link text-white mx-3" href="#">Galerie</a></li>
             </ul>
-            <a href="index.php?module=connexion" class="btn bg-custom-dark rounded-0 px-4 py-2">Démarrer la soirée</a>
+            <?php if (isset($_SESSION['user'])): ?>
+                <a href="index.php?module=connexion" class="btn bg-custom-dark rounded-0 px-4 py-2">Se deconnecter</a>
+            <?php else: ?>
+                <a href="index.php?module=connexion" class="btn bg-custom-dark rounded-0 px-4 py-2">Démarrer la soirée</a>
+            <?php endif; ?>
         </div>
     </div>
 </nav>
