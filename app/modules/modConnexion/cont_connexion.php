@@ -16,7 +16,7 @@ class ContConnexion {
 
         switch ($action) {
             case 'verifie_connexion':
-                $user = $this->modele->verifierConnexion($_POST['login'], $_POST['password']);
+                $user = $this->modele->verifierConnexion($_POST['email'], $_POST['password']);
                 if ($user) {
                     $_SESSION['user'] = $user;
                     header('Location: index.php?module=accueil');
@@ -28,7 +28,9 @@ class ContConnexion {
 
             case 'valider_inscription':
                 $succes = $this->modele->inscrireUtilisateur(
-                    $_POST['utilisateur'],
+                    $_POST['nom'],
+                    $_POST['prenom'],
+                    $_POST['email'],
                     $_POST['password']
                 );
                 if ($succes) {

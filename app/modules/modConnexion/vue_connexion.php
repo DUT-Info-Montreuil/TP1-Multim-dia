@@ -14,12 +14,12 @@ class VueConnexion {
                 <form method="post" action="index.php?module=connexion&action=verifie_connexion">
 
                     <div class="mb-3 text-center">
-                        <label for="login" class="form-label">Utilisateur</label>
+                        <label for="email" class="form-label">Email</label>
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3">
                                 <i class="bi bi-person"></i>
                             </span>
-                            <input type="text" class="form-control border-start-0 rounded-end-pill" id="login" name="login" required>
+                            <input type="email" class="form-control border-start-0 rounded-end-pill" id="email" name="email" required>
                         </div>
                     </div>
 
@@ -62,12 +62,32 @@ class VueConnexion {
                 <form method="post" action="index.php?module=connexion&action=valider_inscription">
 
                     <div class="mb-3 text-center">
-                        <label for="utilisateur" class="form-label ">Utilisateur</label>
+                        <label for="prenom" class="form-label ">Prenom</label>
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3">
                                 <i class="bi bi-person"></i>
                             </span>
-                            <input type="text" class="form-control border-start-0 rounded-end-pill" id="utilisateur" name="utilisateur" required>
+                            <input type="text" class="form-control border-start-0 rounded-end-pill" id="prenom" name="prenom" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 text-center">
+                        <label for="nom" class="form-label ">Nom</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0 rounded-end-pill" id="nom" name="nom" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 text-center">
+                        <label for="email" class="form-label ">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            <input type="email" class="form-control border-start-0 rounded-end-pill" id="email" name="email" required>
                         </div>
                     </div>
 

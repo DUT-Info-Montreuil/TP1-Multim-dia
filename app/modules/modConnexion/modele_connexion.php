@@ -3,10 +3,10 @@ require_once __DIR__ . '/../../../connexion.php';
 
 class ModeleConnexion {
 
-    public function verifierConnexion($login, $password) {
+    public function verifierConnexion($email, $password) {
         $bdd = Connexion::getBdd();
-        $req = $bdd->prepare("SELECT * FROM utilisateur WHERE nom = ?");
-        $req->execute([$login]);
+        $req = $bdd->prepare("SELECT * FROM utilisateur WHERE email = ?");
+        $req->execute([$email]);
         $user = $req->fetch(PDO::FETCH_ASSOC);
 
         if ($user && password_verify($password, $user['motdepasse'])) {
@@ -15,7 +15,7 @@ class ModeleConnexion {
         return false;
     }
 
-    public function inscrireUtilisateur($nom, $password) {
+    public function inscrireUtilisateur($nom, $prenom, $email, $password) {
         $bdd = Connexion::getBdd();
 
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
@@ -25,8 +25,8 @@ class ModeleConnexion {
 
             return $req->execute([
                 $nom,
-                $nom,
-                $nom . "@edu.fr",
+                $prenom,
+                $email,
                 $passwordHash,
                 0
             ]);
