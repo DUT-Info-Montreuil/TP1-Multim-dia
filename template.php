@@ -15,10 +15,22 @@
 
 </head>
 <body>
-
 <?php include 'app/composants/nav.php'; ?>
 
-<?= $tampon ?>
+<?php if (isset($_SESSION['bienvenue'])): ?>
+    <div class="position-fixed top-0 start-50 translate-middle-x mt-5 pt-4" style="z-index: 1060;">
+        <div class="alert alert-success alert-dismissible fade show shadow-lg" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <?= $_SESSION['bienvenue'] ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    <?php unset($_SESSION['bienvenue']); ?>
+<?php endif; ?>
+
+<main>
+    <?= $tampon ?>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

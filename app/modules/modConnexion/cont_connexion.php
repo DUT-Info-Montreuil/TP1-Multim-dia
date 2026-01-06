@@ -16,34 +16,45 @@ class ContConnexion {
 
         switch ($action) {
             case 'verifie_connexion':
-                $user = $this->modele->verifierConnexion($_POST['email'], $_POST['password']);
+                $email = $_POST['email'] ?? '';
+                $password = $_POST['password'] ?? '';
+
+                $user = $this->modele->verifierConnexion($email, $password);
+
                 if ($user) {
-                    $_SESSION['user'] = $user;
+                    $_SESSION['user'] = [
+                        'id' => $user['id'],
+                        'prenom' => $user['prenom'],
+                        'nom' => $user['nom']
+                    ];
+
+                    $_SESSION['bienvenue'] = "Bienvenue, " . htmlspecialchars($user['prenom']) . " !";
+
                     header('Location: index.php?module=accueil');
+                    exit();
                 } else {
-                    echo "Erreur d'identifiants";
-                    $this->vue->afficherFormulaireConnexion();
+                    $this->vue->afficherFormulaireConnexion("Identifiants incorrects.");
                 }
                 break;
 
             case 'valider_inscription':
-                $succes = $this->modele->inscrireUtilisateur(
-                    $_POST['nom'],
-                    $_POST['prenom'],
-                    $_POST['email'],
-                    $_POST['password']
-                );
+                $succes = $this->modele->inscrireUtilisateur($_POST['nom'], $_POST['prenom'], $_POST['email'], $_POST['password']);
                 if ($succes) {
-                    header('Location: index.php?module=connexion&action=afficher_connexion');
+                    $this->vue->afficherFormulaireConnexion(null, "Inscription réussie ! Connectez-vous.");
                 } else {
-                    echo "Erreur : INE déjà existant";
-                    $this->vue->afficherFormulaireInscription();
+                    $this->vue->afficherFormulaireInscription("Cet email est déjà utilisé.");
                 }
                 break;
 
             case 'afficher_inscription':
                 $this->vue->afficherFormulaireInscription();
                 break;
+
+            case 'deconnexion':
+                session_unset();
+                session_destroy();
+                header('Location: index.php?module=accueil');
+                exit();
 
             default:
                 $this->vue->afficherFormulaireConnexion();
