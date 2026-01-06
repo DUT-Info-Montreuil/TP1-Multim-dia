@@ -12,7 +12,6 @@ class Connexion {
 
             self::$bdd = new PDO("mysql:host=$host;port=$port;dbname=$dbname;charset=utf8", $user, $password);
             self::$bdd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            echo "Connexion réussie !<br>";
 
         } catch (PDOException $e) {
             die("Erreur : " . $e->getMessage() . "<br>");
