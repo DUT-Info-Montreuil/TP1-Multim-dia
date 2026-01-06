@@ -33,7 +33,7 @@ class VueBuvettes
                         <p class="mb-0 mt-2">
                             Bienvenue au <?= htmlspecialchars($buvette['nom']) ?>. Venez découvrir nos produits !
                         </p>
-                        <?php if (isset($_SESSION['user']) && $buvette['est_ouverte'] && ($_SESSION['id_buvette']!=$buvette['id_buvette'])): ?>
+                        <?php if (isset($_SESSION['user']) && $buvette['est_ouverte'] && ( !isset($_SESSION['id_buvette']) || $_SESSION['id_buvette']!=$buvette['id_buvette'])): ?>
                             <div class="mt-3">
                                 <a href="index.php?module=menu&action=afficher&id_buvette=<?= $buvette['id_buvette'] ?>"
                                    class="btn bg-custom-dark rounded-pill px-4">

@@ -17,7 +17,7 @@ class ModeleConnexion {
 
     public function emailExiste($email) {
         $bdd = Connexion::getBdd();
-        $req = $bdd->prepare("SELECT COUNT(*) FROM Utilisateur WHERE email = ?");
+        $req = $bdd->prepare("SELECT COUNT(*) FROM utilisateur WHERE email = ?");
         $req->execute([$email]);
         return $req->fetchColumn() > 0;
     }
@@ -33,7 +33,7 @@ class ModeleConnexion {
 
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
         try {
-            $req = $bdd->prepare("INSERT INTO Utilisateur (nom, prenom, email, motdepasse, solde) VALUES (?, ?, ?, ?, ?)");
+            $req = $bdd->prepare("INSERT INTO utilisateur (nom, prenom, email, motdepasse, solde) VALUES (?, ?, ?, ?, ?)");
             return $req->execute([$nom, $prenom, $email, $passwordHash, 0]);
         } catch (PDOException $e) {
             return false;
