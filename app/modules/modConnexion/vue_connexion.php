@@ -1,7 +1,7 @@
 <?php
 class VueConnexion {
 
-    public function afficherFormulaireConnexion($erreur = null, $succes = null) {
+    public function afficherFormulaireConnexion($erreur = null, $succes = null, $token = null) {
         ?>
         <div class="vh-100 d-flex align-items-center justify-content-center position-relative"
              style="background-image: url('public/img/main.jpg'); background-size: cover; background-position: center;">
@@ -19,6 +19,8 @@ class VueConnexion {
                 <?php endif; ?>
 
                 <form method="post" action="index.php?module=connexion&action=verifie_connexion">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($token) ?>">
+
                     <div class="mb-3 text-center">
                         <label for="email" class="form-label">Email</label>
                         <div class="input-group">
@@ -45,7 +47,7 @@ class VueConnexion {
         <?php
     }
 
-    public function afficherFormulaireInscription($erreur = null) {
+    public function afficherFormulaireInscription($erreur = null, $token = null) {
         ?>
         <div class="vh-100 d-flex align-items-center justify-content-center position-relative"
              style="background-image: url('public/img/main.jpg'); background-size: cover; background-position: center;">
@@ -59,6 +61,8 @@ class VueConnexion {
                 <?php endif; ?>
 
                 <form method="post" action="index.php?module=connexion&action=valider_inscription">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($token) ?>">
+
                     <div class="mb-3 text-center">
                         <label for="prenom" class="form-label ">Prenom</label>
                         <input type="text" class="form-control rounded-pill" name="prenom" required>
