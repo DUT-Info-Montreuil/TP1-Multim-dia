@@ -20,6 +20,7 @@
 
                 <li class="nav-item"><a class="nav-link text-white mx-3" href="#">Notre histoire</a></li>
                 <li class="nav-item"><a class="nav-link text-white mx-3" href="#">Galerie</a></li>
+                <li class="nav-item"> <a href="index.php?module=superadmin" class="btn btn-outline-light ms-3 rounded-pill px-3"><i class="bi bi-crown-fill me-2" aria-hidden="true"></i>super admin</a></li>
             </ul>
 
             <div class="d-flex align-items-center">

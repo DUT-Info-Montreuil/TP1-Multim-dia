@@ -22,6 +22,10 @@ switch ($module) {
         require_once 'app/modules/modMenu/mod_menu.php';
         $mod = new ModMenu();
         break;
+    case 'superadmin':
+        require_once 'app/modules/modSuperAdmin/mod_superadmin.php';
+        $mod = new ModSuperAdmin();
+        break;
 }
 
 $tampon = ob_get_clean();
