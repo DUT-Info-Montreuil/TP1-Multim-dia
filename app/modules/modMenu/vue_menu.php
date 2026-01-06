@@ -25,7 +25,7 @@ class VueMenu {
                                         <h3 class="card-title font-serif mb-2"><?= htmlspecialchars($produit['nom_produit']) ?></h3>
 
                                         <p class="card-text text-muted small mb-3">
-                                            ICI METTRE LA FUTUR DESCRIPTION DU PRODUIT
+                                            <?=$produit['description']?>
                                         </p>
 
                                         <p class="fw-bold mb-3"><?= number_format($produit['prix_produit'], 2) ?> €</p>

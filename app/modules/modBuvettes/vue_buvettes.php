@@ -2,8 +2,9 @@
 
 class VueBuvettes
 {
-    public function afficherBuvettes($buvettes)
+    public function afficherBuvettes($buvettes,$buvettesAdherent)
     {
+        $idsAdhesions = array_column($buvettesAdherent, 'id_buvette');
         ?>
         <div class="container mt-5 pt-5">
             <h1 class="mb-5 text-center font-handwritten">Nos Buvettes</h1>
@@ -31,8 +32,18 @@ class VueBuvettes
                         </div>
 
                         <p class="mb-0 mt-2">
-                            Bienvenue au <?= htmlspecialchars($buvette['nom']) ?>. Venez découvrir nos produits !
+                            <?= $buvette['description']?>
                         </p>
+                        <?php
+                        if(isset($_SESSION['id']) && !in_array($buvette['id_buvette'], $idsAdhesions)):
+                            ?>
+                            <div class="mt-3">
+                                <a href="index.php?module=menu&action=adherer&id_buvette=<?= $buvette['id_buvette'] ?>"
+                                   class="btn bg-custom-dark rounded-pill px-4">
+                                    Adhérer à cette buvette
+                                </a>
+                            </div>
+                        <?php endif; ?>
                         <?php if (isset($_SESSION['user']) && $buvette['est_ouverte'] && ( !isset($_SESSION['id_buvette']) || $_SESSION['id_buvette']!=$buvette['id_buvette'])): ?>
                             <div class="mt-3">
                                 <a href="index.php?module=menu&action=afficher&id_buvette=<?= $buvette['id_buvette'] ?>"

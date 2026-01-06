@@ -16,6 +16,6 @@ class ContBuvettes
 
     public function exec()
     {
-        $this->vue->afficherBuvettes($this->modele->getBuvettes());
+        $this->vue->afficherBuvettes($this->modele->getBuvettes(),$this->modele->getBuvettesAdherent());
     }
 }
