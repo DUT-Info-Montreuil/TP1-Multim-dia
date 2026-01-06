@@ -5,7 +5,14 @@ class ModeleConnexion {
 
     public function verifierConnexion($email, $password) {
         $bdd = Connexion::getBdd();
-        $req = $bdd->prepare("SELECT * FROM utilisateur WHERE email = ?");
+        $req = $bdd->prepare("
+        SELECT u.*, r.nom_role 
+        FROM Utilisateur u
+        LEFT JOIN Affecter a ON u.id_utilisateur = a.id_utilisateur
+        LEFT JOIN Role_Utilisateur r ON a.id_role = r.id_role
+        WHERE u.email = ?
+        LIMIT 1
+    ");
         $req->execute([$email]);
         $user = $req->fetch(PDO::FETCH_ASSOC);
 

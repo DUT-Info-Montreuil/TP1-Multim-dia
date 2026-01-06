@@ -3,23 +3,31 @@ require_once __DIR__ . '/../../../connexion.php';
 
 class ModeleGestionnaire {
 
-    public function getListeProduits() {
+    public function getBuvettesAutorisees($id_utilisateur) {
         $bdd = Connexion::getBdd();
-        $req = $bdd->prepare("SELECT id_produit, nom_produit, prix_produit, image_produit FROM Produit");
-        $req->execute();
+        $req = $bdd->prepare("
+            SELECT b.* FROM Une_Buvette b
+            INNER JOIN Affecter a ON b.id_buvette = a.id_buvette
+            INNER JOIN Role_Utilisateur r ON a.id_role = r.id_role
+            WHERE a.id_utilisateur = ? 
+            AND r.nom_role = 'Gestionnaire'
+            AND (a.date_fin IS NULL OR a.date_fin >= CURDATE())
+        ");
+        $req->execute([$id_utilisateur]);
         return $req->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getProduit($id) {
+    public function getStocksParBuvette($id_buvette) {
         $bdd = Connexion::getBdd();
-        $req = $bdd->prepare("SELECT id_produit, nom_produit, prix_produit, image_produit FROM Produit WHERE id_produit = ?");
-        $req->execute([$id]);
-        return $req->fetch(PDO::FETCH_ASSOC);
-    }
-
-    public function modifierProduit($id, $nom, $prix) {
-        $bdd = Connexion::getBdd();
-        $req = $bdd->prepare("UPDATE Produit SET nom_produit = ?, prix_produit = ? WHERE id_produit = ?");
-        return $req->execute([$nom, $prix, $id]);
+        $req = $bdd->prepare("
+            SELECT p.*, c.quantite, c.seuil_alerte 
+            FROM Produit p
+            INNER JOIN Contient c ON p.id_produit = c.id_produit
+            INNER JOIN Concerner co ON c.id_inventaire = co.id_inventaire
+            WHERE co.id_buvette = ?
+            ORDER BY p.nom_produit ASC
+        ");
+        $req->execute([$id_buvette]);
+        return $req->fetchAll(PDO::FETCH_ASSOC);
     }
 }

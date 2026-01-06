@@ -15,21 +15,21 @@ class ContGestionnaire {
     }
 
     public function exec() {
-        $action = $_GET['action'] ?? 'liste';
+        if (!isset($_SESSION['user'])) {
+            header('Location: index.php?module=connexion');
+            exit();
+        }
+
+        $id_user = $_SESSION['user']['id_utilisateur'];
+        $id_buvette = $_GET['id_buvette'] ?? null;
         $token = $this->csrf->getToken();
 
-        switch ($action) {
-            case 'details':
-                $id = $_GET['id'] ?? null;
-                $produit = $this->modele->getProduit($id);
-                $this->vue->afficherDetailsArticle($produit, $token);
-                break;
-
-            case 'liste':
-            default:
-                $produits = $this->modele->getListeProduits();
-                $this->vue->afficherGrilleGlobale($produits, $token);
-                break;
+        if (!$id_buvette) {
+            $buvettes = $this->modele->getBuvettesAutorisees($id_user);
+            $this->vue->afficherSelectionBuvette($buvettes);
+        } else {
+            $produits = $this->modele->getStocksParBuvette($id_buvette);
+            $this->vue->afficherGrilleGlobale($produits, $token);
         }
     }
 }

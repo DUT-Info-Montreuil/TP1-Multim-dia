@@ -22,3 +22,58 @@ body {
 .navbar-custom {
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
 }
+
+
+
+/* MOD GESTIONNAIRE : */
+.module-gestionnaire .card {
+    border-radius: 20px !important; /* Arrondis de tes maquettes */
+    background-color: #f8f9fa !important; /* Le gris clair */
+    transition: transform 0.2s;
+}
+
+.module-gestionnaire .card:hover {
+    transform: scale(1.03); /* Petit effet au survol */
+}
+
+.module-gestionnaire .input-search {
+    border: 2px solid #333;
+    border-radius: 50px;
+}
+
+/* Style pour le bouton "+" en pointillés */
+.module-gestionnaire .border-dashed {
+    border: 2px dashed #6c757d !important;
+    background: transparent !important;
+}
+.module-gestionnaire .bg-light { background-color: #f0f0f0 !important; }
+.module-gestionnaire .card { transition: 0.3s; position: relative; }
+.module-gestionnaire .card:hover { transform: translateY(-5px); }
+.module-gestionnaire .border-dashed { border: 2px dashed #ccc !important; }
+
+/* Mise en évidence de l'alerte  */
+.module-gestionnaire .text-danger {
+    color: #dc3545 !important;
+}
+
+/* Style du menu déroulant utilisateur */
+.dropdown-menu {
+    border-radius: 15px; /* Arrondis comme tes maquettes */
+    padding: 10px;
+    min-width: 200px;
+}
+
+.dropdown-item {
+    border-radius: 8px;
+    padding: 10px;
+    transition: all 0.2s;
+}
+
+/* On met en avant l'accès staff avec une couleur subtile */
+.dropdown-item.text-primary {
+    color: #0d6efd !important;
+}
+
+.dropdown-item.text-primary:hover {
+    background-color: #f0f7ff;
+}

@@ -29,8 +29,18 @@
                             <i class="bi bi-person-circle me-2"></i>
                             <?= htmlspecialchars($_SESSION['user']['prenom']) ?>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" style="border-radius: 15px;">
                             <li><span class="dropdown-item-text small text-muted">Connecté en tant que :<br><strong><?= htmlspecialchars($_SESSION['user']['prenom']) ?></strong></span></li>
+
+                            <?php if (($_SESSION['user']['role'] ?? '') === 'Gestionnaire'): ?>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item fw-bold text-primary" href="index.php?module=gestionnaire">
+                                        <i class="bi bi-shield-lock me-2"></i>Accès Staff
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="index.php?module=connexion&action=deconnexion">
                                     <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
