@@ -23,7 +23,7 @@ switch ($module) {
         $mod = new ModMenu();
         break;
     case 'superadmin':
-        require_once 'app/modules/modSuperAdmin/mod_superadmin.php';
+        require_once 'app/modules/modSuperAdmin/mod_super_admin.php';
         $mod = new ModSuperAdmin();
         break;
 }

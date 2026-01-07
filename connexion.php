@@ -9,9 +9,9 @@ class Connexion {
             $dbname = 'dutinfopw20168';*/
 //            $user = 'root';
 //            $password = '';
-            $host = 'mysql:host=database-etudiants.iut.univ-paris8.fr;dbname=dutinfopw20168;charset=utf8';
-            $user = 'dutinfopw20168';
-            $password = 'jyryhute';
+            $host = 'mysql:host=127.0.0.1;dbname=alacool;charset=utf8';
+            $user = 'root';
+            $password = '';
 
             self::$bdd = new PDO($host, $user, $password);
             self::$bdd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
