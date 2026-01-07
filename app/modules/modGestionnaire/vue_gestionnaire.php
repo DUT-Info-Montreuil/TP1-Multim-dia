@@ -1,7 +1,7 @@
 <?php
 class VueGestionnaire {
 
-    public function afficherGrilleGlobale($produits, $token) {
+    public function afficherGrilleGlobale($produits, $id_buvette) {
         ?>
         <div class="module-gestionnaire container mt-5 pt-5">
             <h2 class="font-handwritten text-dark mb-4">États des stocks</h2>
@@ -16,34 +16,69 @@ class VueGestionnaire {
             <div class="row g-4">
                 <?php foreach ($produits as $p):
                     $alerte = ($p['quantite'] <= $p['seuil_alerte']);
-                ?>
+                    ?>
                     <div class="col-6 col-md-3 col-lg-2">
-                        <a href="index.php?module=gestionnaire&action=details&id=<?= $p['id_produit'] ?>" class="text-decoration-none">
+                        <a href="index.php?module=gestionnaire&action=details&id=<?= $p['id_produit'] ?>&id_buvette=<?= $id_buvette ?>" class="text-decoration-none">
                             <div class="card h-100 border-0 shadow-sm rounded-4 p-3 text-center bg-white inventory-card">
                                 <?php if ($alerte): ?>
                                     <span class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle"></span>
                                 <?php endif; ?>
-
                                 <div class="bg-white rounded-3 p-2 mb-2 d-flex align-items-center justify-content-center" style="height: 100px;">
                                     <img src="public/img/<?= htmlspecialchars($p['image_produit']) ?>" class="img-fluid" style="max-height: 80px;">
                                 </div>
-
-                                <h6 class="small fw-bold text-uppercase <?= $alerte ? 'text-danger' : 'text-dark' ?> mb-1">
-                                    <?= htmlspecialchars($p['nom_produit']) ?>
-                                </h6>
-                                <p class="mb-0 small <?= $alerte ? 'fw-bold text-danger' : 'text-muted' ?>">
-                                    Stock : <?= $p['quantite'] ?>
-                                </p>
+                                <h6 class="small fw-bold text-uppercase <?= $alerte ? 'text-danger' : 'text-dark' ?> mb-1"><?= htmlspecialchars($p['nom_produit']) ?></h6>
+                                <p class="mb-0 small <?= $alerte ? 'fw-bold text-danger' : 'text-muted' ?>">Stock : <?= $p['quantite'] ?></p>
                             </div>
                         </a>
                     </div>
                 <?php endforeach; ?>
 
                 <div class="col-6 col-md-3 col-lg-2">
-                    <div class="card h-100 border-2 border-dashed rounded-4 d-flex align-items-center justify-content-center bg-light text-secondary" style="min-height: 180px;">
-                        <i class="bi bi-plus-lg display-6"></i>
-                    </div>
+                    <a href="index.php?module=gestionnaire&action=form_nouveau&id_buvette=<?= $id_buvette ?>" class="text-decoration-none">
+                        <div class="card h-100 border-2 border-dashed rounded-4 d-flex align-items-center justify-content-center bg-light text-secondary" style="border-style: dashed !important; min-height: 180px;">
+                            <div class="text-center">
+                                <i class="bi bi-plus-lg display-6"></i>
+                                <br><span class="fw-bold small">NOUVEAU</span>
+                            </div>
+                        </div>
+                    </a>
                 </div>
+            </div>
+        </div>
+        <?php
+    }
+
+    public function afficherFormulaireNouveauProduit($id_buvette) {
+        ?>
+        <div class="container mt-5 pt-5">
+            <div class="card border-0 shadow-lg rounded-5 p-5">
+                <h2 class="font-handwritten mb-4">Créer un nouvel article</h2>
+                <form action="index.php?module=gestionnaire&action=valider_nouveau&id_buvette=<?= $id_buvette ?>"
+                      method="POST"
+                      enctype="multipart/form-data">
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Nom de l'article</label>
+                        <input type="text" name="nom" class="form-control rounded-pill" placeholder="Ex: Cookie Géant" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Prix (en centimes)</label>
+                            <input type="number" name="prix" class="form-control rounded-pill" placeholder="250 pour 2.50€" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Image du produit</label>
+                            <input type="file" name="image_file" class="form-control rounded-pill" accept="image/*" required>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-dark rounded-pill px-5">CRÉER</button>
+                        <a href="index.php?module=gestionnaire&id_buvette=<?= $id_buvette ?>"
+                           class="btn btn-outline-secondary rounded-pill px-4 ms-2">ANNULER</a>
+                    </div>
+                </form>
             </div>
         </div>
         <?php

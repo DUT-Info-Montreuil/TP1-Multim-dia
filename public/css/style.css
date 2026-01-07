@@ -77,3 +77,15 @@ body {
 .dropdown-item.text-primary:hover {
     background-color: #f0f7ff;
 }
+
+.add-product-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.add-product-card:hover {
+    background-color: #e9ecef !important;
+    color: #000 !important;
+    border-color: #000 !important;
+    transform: scale(1.02);
+}
