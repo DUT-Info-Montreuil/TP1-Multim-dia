@@ -28,9 +28,9 @@ class ContSuperAdmin {
 //            case 'modifier_buvette':
 //                $this->modifierBuvette();
 //                break;
-//            case 'supprimer_buvette':
-//                $this->supprimerBuvette();
-//                break;
+            case 'supprimer_buvette':
+                $this->supprimerBuvette();
+                break;
 //            case 'attribuer_gestionnaire':
 //                $this->attribuerGestionnaire();
 //                break;
@@ -40,9 +40,9 @@ class ContSuperAdmin {
 //            case 'retirer_gestionnaire':
 //                $this->retirerGestionnaire();
 //                break;
-//            case 'journal_activite':
-//                $this->journalActivite();
-//                break;
+            case 'journal_activite':
+                $this->journalActivite();
+                break;
             default:
                 $this->afficherTableauBord();
         }
@@ -66,11 +66,14 @@ class ContSuperAdmin {
                     $_POST['description']
                 );
                 if ($result) {
-                    $this->modele->ajouterJournalActivite(
-                        'Modification buvette',
-                        'Buvette ID: ' . $_POST['id_buvette'],
-                        'Nom: ' . $_POST['nom']
-                    );
+                    // Vérifiez que la méthode existe avant de l'appeler
+                    if (method_exists($this->modele, 'ajouterJournalActivite')) {
+                        $this->modele->ajouterJournalActivite(
+                            'Modification buvette',
+                            'Buvette ID: ' . $_POST['id_buvette'],
+                            'Nom modifié en: ' . $_POST['nom']
+                        );
+                    }
                     $message = "Buvette modifiée avec succès";
                     $buvettes = $this->modele->getBuvettes(); // Recharger les données
                 } else {
@@ -92,6 +95,32 @@ class ContSuperAdmin {
         }
 
         $this->vue->afficherGestionBuvettes($buvettes, $message);
+    }
+
+    private function supprimerBuvette() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_buvette'])) {
+            $id_buvette = $_POST['id_buvette'];
+
+            // Appel de la méthode archiverBuvette du modèle
+            $result = $this->modele->archiverBuvette($id_buvette);
+
+            if ($result) {
+                header('Location: index.php?module=superadmin&action=gestion_buvettes&message=archived');
+                exit();
+            } else {
+                header('Location: index.php?module=superadmin&action=gestion_buvettes&message=error');
+                exit();
+            }
+        } else {
+            // Rediriger si pas de POST
+            header('Location: index.php?module=superadmin&action=gestion_buvettes');
+            exit();
+        }
+    }
+
+    private function journalActivite() {
+        $activites = $this->modele->getJournalActivite();
+        $this->vue->afficherJournalActivite($activites);
     }
 }
 ?>

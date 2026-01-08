@@ -85,7 +85,7 @@ class VueSuperAdmin {
                             <i class="fas fa-store fa-3x text-primary mb-3"></i>
                             <h5 class="card-title">Gestion des Buvettes</h5>
                             <p class="card-text">Modifier, archiver et gérer les buvettes de la plateforme</p>
-                            <a href="index.php?module=superAdmin&action=gestion_buvettes" class="btn btn-primary">
+                            <a href="index.php?module=superadmin&action=gestion_buvettes" class="btn btn-primary">
                                 Gérer les Buvettes
                             </a>
                         </div>
@@ -97,7 +97,7 @@ class VueSuperAdmin {
                             <i class="fas fa-users-cog fa-3x text-success mb-3"></i>
                             <h5 class="card-title">Gestion des Gestionnaires</h5>
                             <p class="card-text">Attribuer, modifier et retirer les rôles de gestionnaire</p>
-                            <a href="index.php?module=superAdmin&action=gestion_gestionnaires" class="btn btn-success">
+                            <a href="index.php?module=superadmin&action=gestion_gestionnaires" class="btn btn-success">
                                 Gérer les Gestionnaires
                             </a>
                         </div>
@@ -109,7 +109,7 @@ class VueSuperAdmin {
                             <i class="fas fa-clipboard-list fa-3x text-info mb-3"></i>
                             <h5 class="card-title">Journal d'Activité</h5>
                             <p class="card-text">Consulter l'historique des actions administratives</p>
-                            <a href="index.php?module=superAdmin&action=journal_activite" class="btn btn-info">
+                            <a href="index.php?module=superadmin&action=journal_activite" class="btn btn-info">
                                 Voir le Journal
                             </a>
                         </div>
@@ -125,7 +125,7 @@ class VueSuperAdmin {
         <div class="container mt-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="h2">Gestion des Buvettes</h1>
-                <a href="index.php?module=superAdmin" class="btn btn-secondary">
+                <a href="index.php?module=superadmin" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Retour au tableau de bord
                 </a>
             </div>
@@ -238,7 +238,7 @@ class VueSuperAdmin {
         <div class="modal fade" id="supprimerBuvetteModal" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <form method="POST" action="index.php?module=superAdmin&action=supprimer_buvette">
+                    <form method="POST" action="index.php?module=superadmin&action=supprimer_buvette">
                         <div class="modal-header">
                             <h5 class="modal-title">Archiver la buvette</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -290,7 +290,7 @@ class VueSuperAdmin {
                     <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#attribuerGestionnaireModal">
                         <i class="fas fa-plus"></i> Attribuer un Gestionnaire
                     </button>
-                    <a href="index.php?module=superAdmin" class="btn btn-secondary">
+                    <a href="index.php?module=superadmin" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Retour
                     </a>
                 </div>
@@ -440,7 +440,7 @@ class VueSuperAdmin {
         <div class="modal fade" id="retirerGestionnaireModal" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <form method="POST" action="index.php?module=superAdmin&action=retirer_gestionnaire">
+                    <form method="POST" action="index.php?module=superadmin&action=retirer_gestionnaire">
                         <div class="modal-header">
                             <h5 class="modal-title">Retirer le rôle de gestionnaire</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -484,7 +484,7 @@ class VueSuperAdmin {
         <div class="container mt-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="h2">Journal d'Activité</h1>
-                <a href="index.php?module=superAdmin" class="btn btn-secondary">
+                <a href="index.php?module=superadmin" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Retour
                 </a>
             </div>
