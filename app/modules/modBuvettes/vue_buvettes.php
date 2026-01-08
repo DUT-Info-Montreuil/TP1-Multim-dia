@@ -161,9 +161,11 @@ class VueBuvettes
                             <?php endif; ?>
                         </div>
                     </div>
+
                 </div>
             </div>
         <?php }
     }
 }
+
 ?>

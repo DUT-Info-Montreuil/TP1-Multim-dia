@@ -16,64 +16,28 @@ class ContBuvettes
 
     public function exec()
     {
-        $action = isset($_GET['action']) ? $_GET['action'] : 'afficher';
+        $action = $_GET['action'] ?? 'afficher';
 
         switch ($action) {
-
             case 'adherer':
-                $idBuvette = isset($_GET['id_buvette']) ? $_GET['id_buvette'] : null;
-                $user = isset($_SESSION['user']) ? $_SESSION['user'] : null;
-
+                $idBuvette = $_GET['id_buvette'] ?? null;
+                $user = $_SESSION['user'] ?? null;
                 if ($idBuvette && isset($user['id_utilisateur'])) {
                     $this->modele->adhererBuvette($idBuvette, $user['id_utilisateur']);
                 }
-
-            case 'afficher':
-            default:
-                $adhesions = $this->modele->getBuvettesAdherent();
-                $idsMembres = array_column($adhesions, 'id_buvette');
-
-                $staffBuvettes = method_exists($this->modele, 'getBuvettesStaff')
-                    ? $this->modele->getBuvettesStaff()
-                    : [];
-
-                $toutesLesBuvettes = $this->modele->getBuvettes();
-                $enAttente = $this->modele->getMembreBuvetteEnAdhesion();
-
-                $buvettesTriees = $this->ordonnerBuvettes($toutesLesBuvettes, $idsMembres);
-
                 $this->vue->afficherBuvettes(
-                    $buvettesTriees,
-                    $adhesions,
-                    $enAttente,
-                    $staffBuvettes
+                    $this->modele->getBuvettes(),
+                    $this->modele->getBuvettesAdherent(),
+                    $this->modele->getMembreBuvetteEnAdhesion()
+                );
+                break;
+            case 'afficher':
+                $this->vue->afficherBuvettes(
+                $this->modele->getBuvettes(),
+                $this->modele->getBuvettesAdherent(),
+                $this->modele->getMembreBuvetteEnAdhesion()
                 );
                 break;
         }
-    }
-
-    private function ordonnerBuvettes($buvettes, $idsMembres)
-    {
-        usort($buvettes, function($a, $b) use ($idsMembres) {
-            $scoreA = 1;
-            if (in_array($a['id_buvette'], $idsMembres)) {
-                $scoreA = 3;
-            } elseif ($a['est_ouverte']) {
-                $scoreA = 2;
-            }
-
-            $scoreB = 1;
-            if (in_array($b['id_buvette'], $idsMembres)) {
-                $scoreB = 3;
-            } elseif ($b['est_ouverte']) {
-                $scoreB = 2;
-            }
-
-            // Tri décroissant sur le score
-            if ($scoreA == $scoreB) return 0;
-            return ($scoreA < $scoreB) ? 1 : -1;
-        });
-
-        return $buvettes;
     }
 }
