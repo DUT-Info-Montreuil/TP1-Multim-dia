@@ -1,18 +1,20 @@
 <?php
 require_once 'vue_super_admin.php';
 require_once 'modele_super_admin.php';
+require_once __DIR__ . '/../../../csrf.php'; // Ajout de cette ligne
 
 class ContSuperAdmin {
     private $vue;
     private $modele;
 
+    private $csrf;
     public function __construct() {
         $this->vue = new VueSuperAdmin();
         $this->modele = new ModeleSuperAdmin();
+        $this->csrf = new csrf();
     }
 
     public function exec() {
-        // Initialiser les rôles de base si nécessaire
         $action = isset($_GET['action']) ? $_GET['action'] : 'afficher_tableau_bord';
 
         switch($action) {
@@ -59,6 +61,11 @@ class ContSuperAdmin {
         $message = null;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+            //  CSRF
+            if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
+                die("Erreur de sécurité CSRF");
+            }
+
             if ($_POST['action'] === 'modifier' && isset($_POST['id_buvette'])) {
                 $result = $this->modele->modifierBuvette(
                     $_POST['id_buvette'],
@@ -66,7 +73,6 @@ class ContSuperAdmin {
                     $_POST['description']
                 );
                 if ($result) {
-                    // Vérifiez que la méthode existe avant de l'appeler
                     if (method_exists($this->modele, 'ajouterJournalActivite')) {
                         $this->modele->ajouterJournalActivite(
                             'Modification buvette',
@@ -75,14 +81,13 @@ class ContSuperAdmin {
                         );
                     }
                     $message = "Buvette modifiée avec succès";
-                    $buvettes = $this->modele->getBuvettes(); // Recharger les données
+                    $buvettes = $this->modele->getBuvettes();
                 } else {
                     $message = "Erreur lors de la modification";
                 }
             }
         }
 
-        // Gestion des messages GET
         if (isset($_GET['message'])) {
             switch($_GET['message']) {
                 case 'archived':
@@ -94,14 +99,19 @@ class ContSuperAdmin {
             }
         }
 
-        $this->vue->afficherGestionBuvettes($buvettes, $message);
+        // passer CSRF a la vue
+        $token = $this->csrf->getToken();
+        $this->vue->afficherGestionBuvettes($buvettes, $token, $message);
     }
+
 
     private function supprimerBuvette() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_buvette'])) {
-            $id_buvette = $_POST['id_buvette'];
+            if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
+                die("Erreur de sécurité CSRF");
+            }
 
-            // Appel de la méthode archiverBuvette du modèle
+            $id_buvette = $_POST['id_buvette'];
             $result = $this->modele->archiverBuvette($id_buvette);
 
             if ($result) {
@@ -112,11 +122,11 @@ class ContSuperAdmin {
                 exit();
             }
         } else {
-            // Rediriger si pas de POST
             header('Location: index.php?module=superadmin&action=gestion_buvettes');
             exit();
         }
     }
+
 
     private function journalActivite() {
         $activites = $this->modele->getJournalActivite();

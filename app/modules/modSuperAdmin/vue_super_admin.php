@@ -4,7 +4,7 @@ class VueSuperAdmin {
 
     public function afficherTableauBord($stats) {
         ?>
-        <div class="container mt-4">
+        <div class="container mt-5 pt-5">
             <div class="row mb-4">
                 <div class="col-md-12">
                     <div class="d-flex justify-content-between align-items-center">
@@ -97,7 +97,7 @@ class VueSuperAdmin {
                             <i class="fas fa-users-cog fa-3x text-success mb-3"></i>
                             <h5 class="card-title">Gestion des Gestionnaires</h5>
                             <p class="card-text">Attribuer, modifier et retirer les rôles de gestionnaire</p>
-                            <a href="index.php?module=superadmin&action=gestion_gestionnaires" class="btn btn-success">
+                            <a href="index.php?module=superadmin&action=gestion_gestionnaires" class="btn btn-warning">
                                 Gérer les Gestionnaires
                             </a>
                         </div>
@@ -120,9 +120,9 @@ class VueSuperAdmin {
         <?php
     }
 
-    public function afficherGestionBuvettes($buvettes, $message = null) {
+    public function afficherGestionBuvettes($buvettes, $token, $message = null) {
         ?>
-        <div class="container mt-4">
+        <div class="container mt-5 pt-5">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="h2">Gestion des Buvettes</h1>
                 <a href="index.php?module=superadmin" class="btn btn-secondary">
@@ -207,6 +207,7 @@ class VueSuperAdmin {
             <div class="modal-dialog">
                 <div class="modal-content">
                     <form method="POST">
+                        <input type="hidden" name="csrf_token" value="<?= $token ?>">
                         <div class="modal-header">
                             <h5 class="modal-title">Modifier la buvette</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -239,6 +240,7 @@ class VueSuperAdmin {
             <div class="modal-dialog">
                 <div class="modal-content">
                     <form method="POST" action="index.php?module=superadmin&action=supprimer_buvette">
+                        <input type="hidden" name="csrf_token" value="<?= $token ?>">
                         <div class="modal-header">
                             <h5 class="modal-title">Archiver la buvette</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -283,7 +285,7 @@ class VueSuperAdmin {
 
     public function afficherGestionGestionnaires($gestionnaires, $utilisateursDisponibles, $buvettesDisponibles, $message = null) {
         ?>
-        <div class="container mt-4">
+        <div class="container mt-5 pt-5">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="h2">Gestion des Gestionnaires</h1>
                 <div>
@@ -481,7 +483,7 @@ class VueSuperAdmin {
 
     public function afficherJournalActivite($activites) {
         ?>
-        <div class="container mt-4">
+        <div class="container mt-5 pt-5">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="h2">Journal d'Activité</h1>
                 <a href="index.php?module=superadmin" class="btn btn-secondary">
