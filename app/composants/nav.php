@@ -20,7 +20,7 @@
 
                 <li class="nav-item"><a class="nav-link text-white mx-3" href="#">Notre histoire</a></li>
                 <li class="nav-item"><a class="nav-link text-white mx-3" href="#">Galerie</a></li>
-                <li class="nav-item"> <a class="nav-link text-white mx-3" href="index.php?module=superadmin"><i class="bi bi-crown-fill me-2" aria-hidden="true"></i>Panneau d'Administration</a></li>
+<!--                <li class="nav-item"> <a class="nav-link text-white mx-3" href="index.php?module=superadmin"><i class="bi bi-crown-fill me-2" aria-hidden="true"></i>Panneau d'Administration</a></li>-->
             </ul>
 
             <div class="d-flex align-items-center">
@@ -30,8 +30,17 @@
                             <i class="bi bi-person-circle me-2"></i>
                             <?= htmlspecialchars($_SESSION['user']['prenom']) ?>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" style="border-radius: 15px;">
                             <li><span class="dropdown-item-text small text-muted">Connecté en tant que :<br><strong><?= htmlspecialchars($_SESSION['user']['prenom']) ?></strong></span></li>
+                            <?php if (($_SESSION['user']['role'] ?? '') === 'Administrateur'): ?>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item fw-bold text-primary" href="index.php?module=superadmin">
+                                        <i class="bi bi-shield-lock me-2"></i>Accès Super Admin
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="index.php?module=connexion&action=deconnexion">
                                     <i class="bi bi-box-arrow-right me-2"></i>Déconnexion

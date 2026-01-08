@@ -27,15 +27,23 @@ class ContConnexion {
 
                 $email = $_POST['email'] ?? '';
                 $password = $_POST['password'] ?? '';
+
                 $user = $this->modele->verifierConnexion($email, $password);
 
                 if ($user) {
-                    $_SESSION['user'] = $user;
+                    $_SESSION['user'] = [
+                        'id_utilisateur' => $user['id_utilisateur'],
+                        'prenom'         => $user['prenom'],
+                        'nom'            => $user['nom'],
+                        'email'          => $user['email'],
+                        'role'           => $user['nom_role'] ?? 'Client'
+                    ];
+
                     $_SESSION['bienvenue'] = "Bienvenue, " . htmlspecialchars($user['prenom']) . " !";
                     header('Location: index.php?module=accueil');
                     exit();
                 } else {
-                    $this->vue->afficherFormulaireConnexion("Email ou mot de passe incorrect.", null, $token);
+                    $this->vue->afficherFormulaireConnexion("Email ou mot de passe incorrect.");
                 }
                 break;
 
