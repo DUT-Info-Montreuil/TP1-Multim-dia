@@ -27,7 +27,11 @@
                 <?php if (isset($_SESSION['user'])): ?>
                     <div class="dropdown">
                         <button class="btn btn-outline-light dropdown-toggle rounded-pill px-3" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle me-2"></i>
+                            <?php if (($_SESSION['user']['role'] ?? '') === 'Administrateur'): ?>
+                                <i class="fas fa-crown"></i>
+                            <?php else: ?>
+                                <i class="bi bi-person-circle me-2"></i>
+                            <?php endif; ?>
                             <?= htmlspecialchars($_SESSION['user']['prenom']) ?>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" style="border-radius: 15px;">
