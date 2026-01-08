@@ -10,14 +10,26 @@ class ModeleBuvettes {
     }
 
     public function getBuvettesAdherent() {
-        if (isset($_SESSION['user']) && is_array($_SESSION['user']) && isset($_SESSION['user']['id_utilisateur'])) {
             $pdo = Connexion::getBdd();
-            $stmt = $pdo->prepare("SELECT * FROM affecter WHERE id_utilisateur = :id_user AND date_fin IS NULL");
+            $stmt = $pdo->prepare("SELECT * FROM affecter WHERE id_utilisateur = :id_user");
             $stmt->bindParam(':id_user', $_SESSION['user']['id_utilisateur']);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        }
-        return [];
+    }
+    public function adhererBuvette($idBuvette, $idUtilisateur) {
+        $pdo = Connexion::getBdd();
+        $stmt = $pdo->prepare("INSERT INTO adhesion (id_utilisateur, id_buvette, date_adhesion) VALUES (:id_user, :id_buvette, NOW())");
+        $stmt->bindParam(':id_user', $idUtilisateur);
+        $stmt->bindParam(':id_buvette', $idBuvette);
+        $stmt->execute();
+    }
+
+    public function getMembreBuvetteEnAdhesion(){
+            $pdo = Connexion::getBdd();
+            $stmt = $pdo->prepare("SELECT * FROM adhesion WHERE id_utilisateur = :id_user");
+            $stmt->bindParam(':id_user', $_SESSION['user']['id_utilisateur']);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
 }
