@@ -5,7 +5,7 @@ class ModeleServeur {
 
     public function getListeReservations($idBuvette) {
         $bdd = Connexion::getBdd();
-        // On récupère tout pour pouvoir filtrer côté client, c'est plus fluide pour un dashboard live
+        // Le WHERE c.id_buvette = ? assure qu'on ne voit que les commandes de CETTE buvette
         $sql = "SELECT c.*, u.nom, u.prenom 
                 FROM commande c
                 JOIN utilisateur u ON c.id_utilisateur = u.id_utilisateur
@@ -41,8 +41,7 @@ class ModeleServeur {
         $stmt->execute([$idCommande]);
     }
 
-    // --- NOUVELLES MÉTHODES POUR LA VENTE ---
-
+    // --- VENTE AU COMPTOIR ---
     public function getTousLesProduits() {
         $bdd = Connexion::getBdd();
         return $bdd->query("SELECT * FROM produit")->fetchAll(PDO::FETCH_ASSOC);
@@ -72,9 +71,9 @@ class ModeleServeur {
                 throw new Exception("Solde insuffisant.");
             }
 
-            // 2. Créer la commande directement en statut "Arrivé" (Prêt à servir) ou "Parti" (Servi)
-            // Pour une vente comptoir instantanée, "Parti" est logique (transaction close)
-            $stmt = $bdd->prepare("INSERT INTO commande (statut, date_commande, prix_total, id_utilisateur, id_buvette) VALUES ('Parti', NOW(), ?, ?, ?)");
+            // 2. Créer la commande
+            // MODIFICATION ICI : Statut 'Payé' (En attente) pour qu'elle apparaisse dans "En cours"
+            $stmt = $bdd->prepare("INSERT INTO commande (statut, date_commande, prix_total, id_utilisateur, id_buvette) VALUES ('Payé', NOW(), ?, ?, ?)");
             $stmt->execute([$total, $idUtilisateur, $idBuvette]);
             $idCommande = $bdd->lastInsertId();
 
