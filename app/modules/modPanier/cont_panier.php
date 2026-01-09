@@ -86,7 +86,8 @@ class ContPanier
                 $this->vue->afficherPanier($produits, $total, $aDesHistoriques);
                 break;
             case 'payer':
-
+                // EST PAYER  est un boolean
+                // Mettre statut en "en cours"
                 $idCommande = $this->modele->getCommandeEnCours($idUser, $idBuvette);
 
                 if ($idCommande) {

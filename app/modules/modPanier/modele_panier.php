@@ -2,9 +2,15 @@
 require_once __DIR__ . '/../../../connexion.php';
 
 class ModelePanier {
+
     public function getCommandeEnCours($idUser, $idBuvette) {
         $pdo = Connexion::getBdd();
-        $stmt = $pdo->prepare("SELECT id_commande FROM commande WHERE id_utilisateur = ? AND id_buvette = ? AND statut = 'En cours'");
+        $sql = "SELECT id_commande FROM commande 
+                WHERE id_utilisateur = ? 
+                AND id_buvette = ? 
+                AND statut = 'En cours' 
+                AND est_paye = 0";
+        $stmt = $pdo->prepare($sql);
         $stmt->execute([$idUser, $idBuvette]);
         $res = $stmt->fetch(PDO::FETCH_ASSOC);
         return $res ? $res['id_commande'] : null;
@@ -12,7 +18,7 @@ class ModelePanier {
 
     public function creerCommande($idUser, $idBuvette) {
         $pdo = Connexion::getBdd();
-        $stmt = $pdo->prepare("INSERT INTO commande (statut, date_commande, prix_total, id_utilisateur, id_buvette) VALUES ('En cours', NOW(), 0, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO commande (statut, date_commande, prix_total, id_utilisateur, id_buvette, est_paye) VALUES ('En cours', NOW(), 0, ?, ?, 0)");
         $stmt->execute([$idUser, $idBuvette]);
         return $pdo->lastInsertId();
     }
@@ -114,8 +120,15 @@ class ModelePanier {
             $stmtDebit = $pdo->prepare("UPDATE utilisateur SET solde = solde - ? WHERE id_utilisateur = ?");
             $stmtDebit->execute([$total, $idUser]);
 
-            $stmtUpdate = $pdo->prepare("UPDATE commande SET statut = 'Payée', date_commande = NOW() WHERE id_commande = ?");
-            $stmtUpdate->execute([$idCommande]);
+            $sql = "UPDATE commande 
+                SET est_paye = 1, 
+                    statut = 'En cours', 
+                    date_commande = NOW(), 
+                    prix_total = ? 
+                WHERE id_commande = ?";
+
+            $stmtUpdate = $pdo->prepare($sql);
+            $stmtUpdate->execute([$total, $idCommande]);
 
             if(isset($_SESSION['user'])) {
                 $_SESSION['user']['solde'] -= $total;
@@ -124,11 +137,16 @@ class ModelePanier {
             $pdo->commit();
         } catch (Exception $e) {
             $pdo->rollBack();
+            throw $e;
         }
     }
+
     public function aDesCommandesHistorique($idUser) {
         $pdo = Connexion::getBdd();
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM commande WHERE id_utilisateur = ? AND statut != 'En cours'");
+        $sql = "SELECT COUNT(*) FROM commande 
+                WHERE id_utilisateur = ? 
+                AND (statut != 'En cours' OR est_paye = 1)";
+        $stmt = $pdo->prepare($sql);
         $stmt->execute([$idUser]);
 
         return $stmt->fetchColumn() > 0;
