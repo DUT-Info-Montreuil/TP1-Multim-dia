@@ -7,17 +7,18 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mx-auto fs-5">
-                <li class="nav-item"><a class="nav-link text-white mx-3" href="index.php?module=buvettes">Nos
-                        buvettes</a></li>
+            <ul class="navbar-nav mx-auto align-items-center">
 
-                <?php if (isset($_SESSION['user']) && isset($_SESSION['id_buvette'])): ?>
-                    <li class="nav-item">
-                        <a class="nav-link text-white mx-3"
-                           href="index.php?module=menu&action=afficher&id_buvette=<?= $_SESSION['id_buvette'] ?>">
-                            La Carte
-                        </a>
-                    </li>
+                <?php if (isset($_SESSION['user'])): ?>
+                    <li class="nav-item"><a class="nav-link text-white mx-3" href="index.php?module=buvettes">Nos buvettes</a></li>
+
+                    <?php if (isset($_SESSION['id_buvette'])): ?>
+                        <li class="nav-item">
+                            <a class="nav-link text-white mx-3" href="index.php?module=menu&action=afficher&id_buvette=<?= $_SESSION['id_buvette'] ?>">
+                                <i class="bi bi-book-half me-1"></i>La Carte
+                            </a>
+                        </li>
+                    <?php endif; ?>
                 <?php endif; ?>
 
                 <li class="nav-item"><a class="nav-link text-white mx-3" href="#">Notre histoire</a></li>
