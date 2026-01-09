@@ -23,12 +23,6 @@ if (session_status() === PHP_SESSION_NONE) {
                                 La Carte
                             </a>
                         </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link text-warning fw-bold mx-3 border border-warning rounded-pill px-3 py-1" href="index.php?module=serveur">
-                                <i class="bi bi-clipboard-data me-1"></i> Commandes
-                            </a>
-                        </li>
                     <?php endif; ?>
                 <?php endif; ?>
 
