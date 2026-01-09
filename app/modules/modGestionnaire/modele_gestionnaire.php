@@ -93,4 +93,63 @@ class ModeleGestionnaire {
         $req->execute([$id_buvette]);
         return $req->fetchAll(PDO::FETCH_ASSOC);
     }
+    public function getDemandesEnAttente($id_buvette) {
+        $bdd = Connexion::getBdd();
+        $req = $bdd->prepare("
+        SELECT u.id_utilisateur, u.nom, u.prenom, u.email, a.date_adhesion as date_demande
+        FROM utilisateur u
+        INNER JOIN adhesion a ON u.id_utilisateur = a.id_utilisateur
+        WHERE a.id_buvette = ?
+        ORDER BY a.date_adhesion ASC
+    ");
+        $req->execute([$id_buvette]);
+        return $req->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getMembresAcceptes($id_buvette) {
+        $bdd = Connexion::getBdd();
+        $req = $bdd->prepare("
+        SELECT u.id_utilisateur, u.nom, u.prenom, u.email, aff.date_debut
+        FROM utilisateur u
+        INNER JOIN affecter aff ON u.id_utilisateur = aff.id_utilisateur
+        INNER JOIN role_utilisateur r ON aff.id_role = r.id_role
+        WHERE aff.id_buvette = ? AND r.nom_role = 'Client'
+        AND (aff.date_fin IS NULL OR aff.date_fin >= CURDATE())
+        ORDER BY u.nom ASC
+    ");
+        $req->execute([$id_buvette]);
+        return $req->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function accepterDemande($id_utilisateur, $id_buvette) {
+        $bdd = Connexion::getBdd();
+        try {
+            $bdd->beginTransaction();
+
+            $reqRole = $bdd->prepare("SELECT id_role FROM role_utilisateur WHERE nom_role = 'Client' LIMIT 1");
+            $reqRole->execute();
+            $id_role_client = $reqRole->fetchColumn();
+
+            $reqIns = $bdd->prepare("INSERT INTO affecter (id_role, id_utilisateur, id_buvette, date_debut) VALUES (?, ?, ?, CURDATE())");
+            $reqIns->execute([$id_role_client, $id_utilisateur, $id_buvette]);
+
+            $reqDel = $bdd->prepare("DELETE FROM adhesion WHERE id_utilisateur = ? AND id_buvette = ?");
+            $reqDel->execute([$id_utilisateur, $id_buvette]);
+
+            $bdd->commit();
+        } catch (Exception $e) {
+            $bdd->rollBack();
+            throw $e;
+        }
+    }
+
+    public function supprimerDemandeOuMembre($id_utilisateur, $id_buvette, $estDemande = true) {
+        $bdd = Connexion::getBdd();
+        if ($estDemande) {
+            $req = $bdd->prepare("DELETE FROM adhesion WHERE id_utilisateur = ? AND id_buvette = ?");
+        } else {
+            $req = $bdd->prepare("DELETE FROM affecter WHERE id_utilisateur = ? AND id_buvette = ? AND id_role = (SELECT id_role FROM role_utilisateur WHERE nom_role = 'Client')");
+        }
+        return $req->execute([$id_utilisateur, $id_buvette]);
+    }
 }

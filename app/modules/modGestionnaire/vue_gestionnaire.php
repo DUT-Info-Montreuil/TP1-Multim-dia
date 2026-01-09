@@ -140,6 +140,9 @@ class VueGestionnaire {
                     <?php else: ?>
                         <a href="index.php?module=gestionnaire&id_buvette=<?= $id_buvette ?>&alerte=1" class="btn btn-dark rounded-pill px-4">ALERTES STOCK</a>
                     <?php endif; ?>
+                    <a href="index.php?module=gestionnaire&action=gerer_adhesions&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-dark rounded-pill px-4 ms-2">
+                        <i class="bi bi-people-fill me-2"></i>MEMBRES
+                    </a>
                 </div>
             </div>
 
@@ -248,6 +251,55 @@ class VueGestionnaire {
                     </a>
                 <?php endforeach; ?>
             </div>
+        </div>
+        <?php
+    }
+    public function afficherGestionAdhesions($id_buvette, $membres, $demandes, $token) {
+        ?>
+        <div class="container mt-5 pt-5">
+            <h2 class="font-handwritten mb-4">Gestion de la Communauté</h2>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-5 bg-warning bg-opacity-10 border-start border-warning border-4">
+                <h5 class="fw-bold text-warning mb-3">DEMANDES D'ADHÉSION EN ATTENTE (<?= count($demandes) ?>)</h5>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead><tr><th>Utilisateur</th><th class="text-end">Actions</th></tr></thead>
+                        <tbody>
+                        <?php foreach($demandes as $d): ?>
+                            <tr>
+                                <td><strong><?= htmlspecialchars($d['nom']." ".$d['prenom']) ?></strong> (<?= htmlspecialchars($d['email']) ?>)</td>
+                                <td class="text-end">
+                                    <a href="index.php?module=gestionnaire&action=accepter_demande&id_utilisateur=<?= $d['id_utilisateur'] ?>&id_buvette=<?= $id_buvette ?>" class="btn btn-success btn-sm rounded-pill px-3">Accepter</a>
+                                    <a href="index.php?module=gestionnaire&action=refuser_demande&id_utilisateur=<?= $d['id_utilisateur'] ?>&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-danger btn-sm rounded-pill px-3">Refuser</a>
+                                </td>
+                            </tr>
+                        <?php endforeach; if(empty($demandes)) echo "<tr><td colspan='2' class='text-muted'>Aucune demande.</td></tr>"; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-4 shadow-sm p-4">
+                <h5 class="fw-bold mb-4">MEMBRES OFFICIELS (RÔLE CLIENT)</h5>
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                    <tr><th>Nom</th><th>Email</th><th>Depuis le</th><th class="text-center">Action</th></tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach($membres as $m): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($m['nom']." ".$m['prenom']) ?></td>
+                            <td><?= htmlspecialchars($m['email']) ?></td>
+                            <td><?= date('d/m/Y', strtotime($m['date_debut'])) ?></td>
+                            <td class="text-center">
+                                <a href="index.php?module=gestionnaire&action=supprimer_membre&id_utilisateur=<?= $m['id_utilisateur'] ?>&id_buvette=<?= $id_buvette ?>" class="btn btn-sm btn-outline-danger rounded-pill" onclick="return confirm('Révoquer ce client ?');">Révoquer</a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-4"><a href="index.php?module=gestionnaire&id_buvette=<?= $id_buvette ?>" class="btn btn-dark rounded-pill">Retour</a></div>
         </div>
         <?php
     }

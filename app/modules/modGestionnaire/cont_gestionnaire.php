@@ -34,6 +34,35 @@ class ContGestionnaire {
         }
 
         switch($action) {
+            case 'gerer_adhesions':
+                $demandes = $this->modele->getDemandesEnAttente($id_buvette);
+                $membres = $this->modele->getMembresAcceptes($id_buvette);
+                $this->vue->afficherGestionAdhesions($id_buvette, $membres, $demandes, $token);
+                break;
+
+            case 'accepter_demande':
+                $id_target = $_GET['id_utilisateur'] ?? null;
+                if ($id_target && $id_buvette) {
+                    $this->modele->accepterDemande($id_target, $id_buvette);
+                }
+                header("Location: index.php?module=gestionnaire&action=gerer_adhesions&id_buvette=$id_buvette");
+                exit();
+
+            case 'refuser_demande':
+                $id_target = $_GET['id_utilisateur'] ?? null;
+                if ($id_target && $id_buvette) {
+                    $this->modele->supprimerDemandeOuMembre($id_target, $id_buvette, true);
+                }
+                header("Location: index.php?module=gestionnaire&action=gerer_adhesions&id_buvette=$id_buvette");
+                exit();
+
+            case 'supprimer_membre':
+                $id_target = $_GET['id_utilisateur'] ?? null;
+                if ($id_target && $id_buvette) {
+                    $this->modele->supprimerDemandeOuMembre($id_target, $id_buvette, false);
+                }
+                header("Location: index.php?module=gestionnaire&action=gerer_adhesions&id_buvette=$id_buvette");
+                exit();
             case 'form_nouveau':
                 $this->vue->afficherFormulaireNouveauProduit($id_buvette, $token, $this->types_produits);
                 break;
