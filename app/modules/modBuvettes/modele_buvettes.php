@@ -18,10 +18,18 @@ class ModeleBuvettes {
     }
     public function adhererBuvette($idBuvette, $idUtilisateur) {
         $pdo = Connexion::getBdd();
-        $stmt = $pdo->prepare("INSERT INTO adhesion (id_utilisateur, id_buvette, date_adhesion) VALUES (:id_user, :id_buvette, NOW())");
-        $stmt->bindParam(':id_user', $idUtilisateur);
-        $stmt->bindParam(':id_buvette', $idBuvette);
-        $stmt->execute();
+        try {
+            $stmt = $pdo->prepare("INSERT INTO adhesion (id_utilisateur, id_buvette, date_adhesion) VALUES (:id_user, :id_buvette, NOW())");
+            $stmt->bindParam(':id_user', $idUtilisateur);
+            $stmt->bindParam(':id_buvette', $idBuvette);
+            $stmt->execute();
+        } catch (PDOException $e) {
+            if ($e->getCode() == '23000') {
+                return;
+            } else {
+                throw $e;
+            }
+        }
     }
 
     public function getMembreBuvetteEnAdhesion(){

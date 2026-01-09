@@ -24,6 +24,14 @@
 
             <div class="d-flex align-items-center">
                 <?php if (isset($_SESSION['user'])): ?>
+                    <?php if(isset($_SESSION['id_buvette'])): ?>
+                        <div class="me-2">
+                            <a href="index.php?module=panier&action=afficher"
+                               class="btn btn-outline-light rounded-pill px-3 position-relative">
+                                <i class="bi bi-cart3 fs-6"></i>
+                            </a>
+                        </div>
+                    <?php endif; ?>
                     <div class="dropdown">
                         <button class="btn btn-outline-light dropdown-toggle rounded-pill px-3" type="button" data-bs-toggle="dropdown">
                             <?php if (($_SESSION['user']['role'] ?? '') === 'Administrateur'): ?>
@@ -67,6 +75,7 @@
                             </li>
                         </ul>
                     </div>
+
                 <?php else: ?>
                     <a href="index.php?module=connexion" class="btn bg-custom-dark rounded-0 px-4 py-2">Démarrer la soirée</a>
                 <?php endif; ?>
