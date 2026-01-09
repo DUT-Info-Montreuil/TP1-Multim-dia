@@ -16,24 +16,25 @@ class ModeleGestionnaire {
         $req->execute([$id_utilisateur]);
         return $req->fetchAll(PDO::FETCH_ASSOC);
     }
+
     public function getDetailsProduit($id_produit) {
         $bdd = Connexion::getBdd();
         $req = $bdd->prepare("
-        SELECT p.*, c.quantite, c.seuil_alerte 
-        FROM produit p
-        INNER JOIN contient c ON p.id_produit = c.id_produit
-        WHERE p.id_produit = ?
-    ");
+            SELECT p.*, c.quantite, c.seuil_alerte 
+            FROM produit p
+            INNER JOIN contient c ON p.id_produit = c.id_produit
+            WHERE p.id_produit = ?
+        ");
         $req->execute([$id_produit]);
         return $req->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function creerEtAjouterProduit($id_buvette, $nom, $prix, $description, $nom_image) {
+    public function creerEtAjouterProduit($id_buvette, $nom, $prix, $description, $nom_image, $type) {
         $bdd = Connexion::getBdd();
         try {
             $bdd->beginTransaction();
-            $req1 = $bdd->prepare("INSERT INTO produit (nom_produit, prix_produit, description, image_produit) VALUES (?, ?, ?, ?)");
-            $req1->execute([$nom, $prix, $description, $nom_image]);
+            $req1 = $bdd->prepare("INSERT INTO produit (nom_produit, prix_produit, description, image_produit, type_produit) VALUES (?, ?, ?, ?, ?)");
+            $req1->execute([$nom, $prix, $description, $nom_image, $type]);
             $id_nouveau = $bdd->lastInsertId();
 
             $reqInv = $bdd->prepare("SELECT id_inventaire FROM concerner WHERE id_buvette = ? LIMIT 1");
@@ -52,19 +53,19 @@ class ModeleGestionnaire {
         }
     }
 
-    public function modifierProduitEtStock($id_produit, $id_buvette, $nouveau_prix, $nouvelle_description, $nouvelle_quantite) {
+    public function modifierProduitEtStock($id_produit, $id_buvette, $nouveau_prix, $nouvelle_description, $nouvelle_quantite, $nouveau_type) {
         $bdd = Connexion::getBdd();
         try {
             $bdd->beginTransaction();
-            $req1 = $bdd->prepare("UPDATE produit SET prix_produit = ?, description = ? WHERE id_produit = ?");
-            $req1->execute([$nouveau_prix, $nouvelle_description, $id_produit]);
+            $req1 = $bdd->prepare("UPDATE produit SET prix_produit = ?, description = ?, type_produit = ? WHERE id_produit = ?");
+            $req1->execute([$nouveau_prix, $nouvelle_description, $nouveau_type, $id_produit]);
 
             $req2 = $bdd->prepare("
-            UPDATE contient c
-            INNER JOIN concerner co ON c.id_inventaire = co.id_inventaire
-            SET c.quantite = ?
-            WHERE c.id_produit = ? AND co.id_buvette = ?
-        ");
+                UPDATE contient c
+                INNER JOIN concerner co ON c.id_inventaire = co.id_inventaire
+                SET c.quantite = ?
+                WHERE c.id_produit = ? AND co.id_buvette = ?
+            ");
             $req2->execute([$nouvelle_quantite, $id_produit, $id_buvette]);
             $bdd->commit();
             return true;
@@ -73,6 +74,7 @@ class ModeleGestionnaire {
             return false;
         }
     }
+
     public function getStocksParBuvette($id_buvette, $seulementAlertes = false) {
         $bdd = Connexion::getBdd();
         $sql = "SELECT p.*, c.quantite, c.seuil_alerte 
@@ -85,24 +87,9 @@ class ModeleGestionnaire {
             $sql .= " AND c.quantite <= c.seuil_alerte";
         }
 
-        $sql .= " ORDER BY p.nom_produit ASC";
+        $sql .= " ORDER BY p.type_produit ASC, p.nom_produit ASC";
 
         $req = $bdd->prepare($sql);
-        $req->execute([$id_buvette]);
-        return $req->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function getProduitsHorsBuvette($id_buvette) {
-        $bdd = Connexion::getBdd();
-        $req = $bdd->prepare("
-        SELECT * FROM Produit 
-        WHERE id_produit NOT IN (
-            SELECT c.id_produit FROM Contient c 
-            INNER JOIN Concerner co ON c.id_inventaire = co.id_inventaire 
-            WHERE co.id_buvette = ?
-        )
-        ORDER BY nom_produit ASC
-    ");
         $req->execute([$id_buvette]);
         return $req->fetchAll(PDO::FETCH_ASSOC);
     }

@@ -7,11 +7,13 @@ class ContGestionnaire {
     private $vue;
     private $modele;
     private $csrf;
+    private $types_produits;
 
     public function __construct() {
         $this->vue = new VueGestionnaire();
         $this->modele = new ModeleGestionnaire();
         $this->csrf = new csrf();
+        $this->types_produits = ['Boisson Chaude', 'Boisson Froide', 'Nourriture Chaude', 'Nourriture Froide'];
     }
 
     public function exec() {
@@ -33,7 +35,7 @@ class ContGestionnaire {
 
         switch($action) {
             case 'form_nouveau':
-                $this->vue->afficherFormulaireNouveauProduit($id_buvette, $token);
+                $this->vue->afficherFormulaireNouveauProduit($id_buvette, $token, $this->types_produits);
                 break;
 
             case 'valider_nouveau':
@@ -46,19 +48,19 @@ class ContGestionnaire {
                     move_uploaded_file($_FILES['image_file']['tmp_name'], 'public/img/' . $nom_image);
                 }
 
-                $this->modele->creerEtAjouterProduit($id_buvette, $_POST['nom'], $_POST['prix'], $_POST['description'], $nom_image);
+                $this->modele->creerEtAjouterProduit($id_buvette, $_POST['nom'], $_POST['prix'], $_POST['description'], $nom_image, $_POST['type_produit']);
                 header("Location: index.php?module=gestionnaire&id_buvette=$id_buvette");
                 exit();
 
             case 'details':
                 $produit = $this->modele->getDetailsProduit($_GET['id']);
-                $this->vue->afficherDetailsArticle($produit, $id_buvette, $token);
+                $this->vue->afficherDetailsArticle($produit, $id_buvette, $token, $this->types_produits);
                 break;
 
             case 'modifier_article':
                 if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) { die("CSRF Error"); }
 
-                $this->modele->modifierProduitEtStock($_GET['id'], $_GET['id_buvette'], $_POST['prix_produit'], $_POST['description'], $_POST['quantite']);
+                $this->modele->modifierProduitEtStock($_GET['id'], $_GET['id_buvette'], $_POST['prix_produit'], $_POST['description'], $_POST['quantite'], $_POST['type_produit']);
                 header("Location: index.php?module=gestionnaire&action=details&id=".$_GET['id']."&id_buvette=".$_GET['id_buvette']);
                 exit();
 
