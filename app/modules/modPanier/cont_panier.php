@@ -43,7 +43,7 @@ class ContPanier
                     header('Location: index.php?module=panier&action=afficher');
                 } else {
                     $_SESSION['flash'] = "Article ajouté au panier !";
-                    header('Location: index.php?module=menu&action=afficher');
+                    header('Location: index.php?module=panier&action=afficher');
                 }
                 exit;
                 break;
@@ -86,8 +86,6 @@ class ContPanier
                 $this->vue->afficherPanier($produits, $total, $aDesHistoriques);
                 break;
             case 'payer':
-                // EST PAYER  est un boolean
-                // Mettre statut en "en cours"
                 $idCommande = $this->modele->getCommandeEnCours($idUser, $idBuvette);
 
                 if ($idCommande) {
