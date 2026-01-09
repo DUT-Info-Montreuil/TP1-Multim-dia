@@ -22,6 +22,14 @@ switch ($module) {
         require_once 'app/modules/modMenu/mod_menu.php';
         $mod = new ModMenu();
         break;
+    case 'panier':
+        require_once 'app/modules/modPanier/mod_panier.php';
+        $mod = new ModPanier();
+        break;
+    case 'compte':
+        require_once 'app/modules/modCompte/mod_compte.php';
+        $mod = new ModCompte();
+        break;
 }
 
 $tampon = ob_get_clean();
