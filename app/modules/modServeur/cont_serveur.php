@@ -16,6 +16,28 @@ class ContServeur {
         $idBuvette = isset($_SESSION['id_buvette']) ? $_SESSION['id_buvette'] : 1;
 
         switch ($action) {
+            // --- GESTION AJAX ---
+            case 'rechercher_user':
+                if (isset($_GET['query'])) {
+                    // Désactive l'affichage du template pour renvoyer du JSON pur
+                    ob_clean();
+                    echo json_encode($this->modele->rechercherUtilisateur($_GET['query']));
+                    exit();
+                }
+                break;
+
+            case 'valider_vente':
+                $data = json_decode(file_get_contents('php://input'), true);
+                if ($data) {
+                    ob_clean();
+                    $res = $this->modele->enregistrerVenteComptoir($data['user_id'], $idBuvette, $data['panier'], $data['total']);
+                    echo json_encode(['success' => ($res === true), 'message' => ($res === true ? '' : $res)]);
+                    exit();
+                }
+                break;
+
+            // --- GESTION STATUTS ---
+
             // AVANCER : Réservé -> Préparation -> Arrivé -> Parti
             case 'cycle_statut':
                 if (isset($_GET['id']) && isset($_GET['actuel'])) {
@@ -37,19 +59,19 @@ class ContServeur {
                 header("Location: index.php?module=serveur");
                 break;
 
-            // RECULER : Parti -> Arrivé -> Préparation -> Réservé
+            // RECULER : Arrivé -> Préparation -> Réservé
+            // INTERDIT si "Parti" ou "Annulé"
             case 'revert_statut':
                 if (isset($_GET['id']) && isset($_GET['actuel'])) {
                     $actuel = $_GET['actuel'];
                     $prev = $actuel;
 
-                    if ($actuel == 'Parti') {
-                        $prev = 'Arrivé';
+                    // Modification demandée : Bloquer retour pour 'Parti' et 'Annulé'
+                    if ($actuel == 'Annulé' || $actuel == 'Parti') {
+                        $prev = $actuel; // Ne change rien
                     } elseif ($actuel == 'Arrivé') {
                         $prev = 'Préparation';
                     } elseif ($actuel == 'Préparation') {
-                        $prev = 'Réservé';
-                    } elseif ($actuel == 'Annulé') {
                         $prev = 'Réservé';
                     }
 
@@ -57,16 +79,6 @@ class ContServeur {
                         $this->modele->changerStatut($_GET['id'], $prev);
                     }
                 }
-                header("Location: index.php?module=serveur");
-                break;
-
-            case 'marquer_arrive':
-                if (isset($_GET['id'])) $this->modele->changerStatut($_GET['id'], 'Arrivé');
-                header("Location: index.php?module=serveur");
-                break;
-
-            case 'marquer_parti':
-                if (isset($_GET['id'])) $this->modele->changerStatut($_GET['id'], 'Parti');
                 header("Location: index.php?module=serveur");
                 break;
 
@@ -78,10 +90,12 @@ class ContServeur {
             case 'dashboard':
             default:
                 $reservations = $this->modele->getListeReservations($idBuvette);
+                $produits = $this->modele->getTousLesProduits(); // Pour le panneau de vente
+
                 foreach ($reservations as &$resa) {
                     $resa['details'] = $this->modele->getDetailsCommande($resa['id_commande']);
                 }
-                $this->vue->afficherDashboard($reservations);
+                $this->vue->afficherDashboard($reservations, $produits);
                 break;
         }
     }
