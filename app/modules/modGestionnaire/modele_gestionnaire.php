@@ -152,4 +152,39 @@ class ModeleGestionnaire {
         }
         return $req->execute([$id_utilisateur, $id_buvette]);
     }
+
+    public function getStatsBuvette($id_buvette) {
+        $bdd = Connexion::getBdd();
+        $sql = "SELECT 
+        -- Valeur du stock pour cette buvette
+        (SELECT SUM(c.quantite * p.prix_produit) 
+         FROM contient c 
+         JOIN produit p ON c.id_produit = p.id_produit 
+         JOIN concerner co ON c.id_inventaire = co.id_inventaire 
+         WHERE co.id_buvette = ?) as valeur_stock,
+         
+        -- NOMBRE D'ALERTES : Correction ici, on joint 'concerner' pour filtrer par id_buvette
+        (SELECT COUNT(*) 
+         FROM contient c 
+         JOIN concerner co ON c.id_inventaire = co.id_inventaire 
+         WHERE co.id_buvette = ? 
+         AND c.quantite <= c.seuil_alerte) as alertes_count,
+         
+        -- Demandes d'adhésion pour cette buvette
+        (SELECT COUNT(*) 
+         FROM adhesion 
+         WHERE id_buvette = ?) as demandes_count,
+         
+        -- Membres actifs pour cette buvette
+        (SELECT COUNT(*) 
+         FROM affecter aff 
+         JOIN role_utilisateur r ON aff.id_role = r.id_role 
+         WHERE aff.id_buvette = ? 
+         AND r.nom_role = 'Client' 
+         AND (aff.date_fin IS NULL OR aff.date_fin >= CURDATE())) as membres_count";
+
+        $req = $bdd->prepare($sql);
+        $req->execute([$id_buvette, $id_buvette, $id_buvette, $id_buvette]);
+        return $req->fetch(PDO::FETCH_ASSOC);
+    }
 }

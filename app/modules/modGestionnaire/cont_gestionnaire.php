@@ -27,6 +27,10 @@ class ContGestionnaire {
         $action = $_GET['action'] ?? 'liste';
         $token = $this->csrf->getToken();
 
+        if (isset($_SESSION['notif'])) {
+            $this->vue->afficherNotification($_SESSION['notif']);
+            unset($_SESSION['notif']);
+        }
         if (!$id_buvette) {
             $buvettes = $this->modele->getBuvettesAutorisees($id_user);
             $this->vue->afficherSelectionBuvette($buvettes);
@@ -77,7 +81,9 @@ class ContGestionnaire {
                     move_uploaded_file($_FILES['image_file']['tmp_name'], 'public/img/' . $nom_image);
                 }
 
-                $this->modele->creerEtAjouterProduit($id_buvette, $_POST['nom'], $_POST['prix'], $_POST['description'], $nom_image, $_POST['type_produit']);
+                if ($this->modele->creerEtAjouterProduit($id_buvette, $_POST['nom'], $_POST['prix'], $_POST['description'], $nom_image, $_POST['type_produit'])) {
+                    $_SESSION['notif'] = "Produit créé avec succès !";
+                }
                 header("Location: index.php?module=gestionnaire&id_buvette=$id_buvette");
                 exit();
 
@@ -87,17 +93,34 @@ class ContGestionnaire {
                 break;
 
             case 'modifier_article':
-                if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) { die("CSRF Error"); }
+                if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
+                    die("CSRF Error");
+                }
+                $id_produit = $_GET['id'];
+                $id_buvette = $_GET['id_buvette'];
 
-                $this->modele->modifierProduitEtStock($_GET['id'], $_GET['id_buvette'], $_POST['prix_produit'], $_POST['description'], $_POST['quantite'], $_POST['type_produit']);
-                header("Location: index.php?module=gestionnaire&action=details&id=".$_GET['id']."&id_buvette=".$_GET['id_buvette']);
+                $success = $this->modele->modifierProduitEtStock(
+                    $id_produit,
+                    $id_buvette,
+                    $_POST['prix_produit'],
+                    $_POST['description'],
+                    $_POST['quantite'],
+                    $_POST['type_produit']
+                );
+
+                if ($success) {
+                    $_SESSION['notif'] = "Modifications enregistrées !";
+                }
+
+                header("Location: index.php?module=gestionnaire&action=details&id=$id_produit&id_buvette=$id_buvette");
                 exit();
 
             case 'liste':
             default:
                 $filtrerAlertes = isset($_GET['alerte']);
                 $produits = $this->modele->getStocksParBuvette($id_buvette, $filtrerAlertes);
-                $this->vue->afficherGrilleGlobale($produits, $id_buvette);
+                $stats = $this->modele->getStatsBuvette($id_buvette);
+                $this->vue->afficherGrilleGlobale($produits, $id_buvette, $stats);
                 break;
         }
     }

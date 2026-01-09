@@ -28,10 +28,12 @@ body {
 /* MOD GESTIONNAIRE : */
 .module-gestionnaire .card {
     border-radius: 20px !important; /* Arrondis de tes maquettes */
-    background-color: #f8f9fa !important; /* Le gris clair */
     transition: transform 0.2s;
 }
 
+.product-card .card {
+    background-color: #f8f9fa !important;
+}
 .module-gestionnaire .card:hover {
     transform: scale(1.03); /* Petit effet au survol */
 }
@@ -88,4 +90,9 @@ body {
     color: #000 !important;
     border-color: #000 !important;
     transform: scale(1.02);
+}
+
+.toast {
+    border-radius: 15px !important;
+    font-family: 'Oswald', sans-serif;
 }

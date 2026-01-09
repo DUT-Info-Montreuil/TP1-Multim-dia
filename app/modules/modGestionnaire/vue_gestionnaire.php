@@ -34,8 +34,9 @@ class VueGestionnaire {
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Prix (en centimes)</label>
-                            <input type="number" name="prix" class="form-control rounded-pill" placeholder="250" required>
+                            <label class="form-label fw-bold">Prix (€)</label>
+                            <input type="number" name="prix_produit" class="form-control rounded-pill"
+                                   placeholder="0.00" min="0" step="0.01" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Image du produit</label>
@@ -93,8 +94,8 @@ class VueGestionnaire {
                                     <input type="number" name="quantite" class="form-control border-dark text-center fw-bold" value="<?= $produit['quantite'] ?>" required>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold">Prix (en centimes)</label>
-                                    <input type="number" name="prix_produit" class="form-control border-dark text-center fw-bold" value="<?= $produit['prix_produit'] ?>" required>
+                                    <label class="form-label fw-bold">Prix</label>
+                                    <input type="number" name="prix_produit" placeholder="0.00" min="0" step="0.01" class="form-control border-dark text-center fw-bold" value="<?= $produit['prix_produit'] ?>" required>
                                 </div>
                             </div>
 
@@ -110,10 +111,48 @@ class VueGestionnaire {
         <?php
     }
 
-    public function afficherGrilleGlobale($produits, $id_buvette) {
+    public function afficherGrilleGlobale($produits, $id_buvette, $stats) {
+        // Déterminer si le filtre alerte est actif
+        $isAlerteActive = isset($_GET['alerte']);
         ?>
         <div class="module-gestionnaire container mt-5 pt-5">
-            <h2 class="font-handwritten text-dark mb-4">États des stocks</h2>
+
+            <div class="d-flex justify-content-between align-items-end mb-4">
+                <h2 class="font-handwritten text-dark mb-0">Tableau de bord</h2>
+                <span class="badge bg-secondary rounded-pill px-3">Buvette #<?= $id_buvette ?></span>
+            </div>
+
+            <div class="row g-3 mb-5 text-center">
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-dark h-100">
+                        <h6 class="text-uppercase small mb-1" style="color: rgba(255,255,255,0.7) !important;">Valeur du Stock</h6>
+                        <h3 class="fw-bold mb-0" style="color: #ffffff !important;">
+                            <?= number_format(($stats['valeur_stock'] ?? 0) / 100, 2, ',', ' ') ?> €
+                        </h3>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 <?= ($stats['alertes_count'] > 0) ? 'bg-danger' : 'bg-white' ?> h-100">
+                        <h6 class="text-uppercase small mb-1" style="color: <?= ($stats['alertes_count'] > 0) ? 'rgba(255,255,255,0.8)' : '#6c757d' ?> !important;">Alertes Stock</h6>
+                        <h3 class="fw-bold mb-0" style="color: <?= ($stats['alertes_count'] > 0) ? '#ffffff' : '#212529' ?> !important;"><?= $stats['alertes_count'] ?></h3>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 <?= ($stats['demandes_count'] > 0) ? 'bg-warning' : 'bg-white' ?> h-100">
+                        <h6 class="text-uppercase small mb-1" style="color: #212529 !important;">Demandes Adhésion</h6>
+                        <h3 class="fw-bold mb-0" style="color: #212529 !important;"><?= $stats['demandes_count'] ?></h3>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                        <h6 class="text-uppercase small mb-1" style="color: #6c757d !important;">Membres Actifs</h6>
+                        <h3 class="fw-bold mb-0" style="color: #212529 !important;"><?= $stats['membres_count'] ?></h3>
+                    </div>
+                </div>
+            </div>
 
             <div class="d-flex flex-wrap gap-3 align-items-center mb-5">
                 <div class="input-group flex-grow-1" style="max-width: 400px;">
@@ -123,25 +162,27 @@ class VueGestionnaire {
                     <input type="text" id="searchInput" class="form-control border-dark border-start-0 rounded-end-pill bg-white" placeholder="RECHERCHER UN PRODUIT...">
                 </div>
 
-                <div class="d-flex align-items-center gap-2">
-                    <label class="fw-bold small text-uppercase">Filtrer par :</label>
-                    <select id="typeFilter" class="form-select border-dark rounded-pill" style="width: auto;">
-                        <option value="all">Tous les types</option>
-                        <option value="Boisson Chaude">Boisson Chaude</option>
-                        <option value="Boisson Froide">Boisson Froide</option>
-                        <option value="Nourriture Chaude">Nourriture Chaude</option>
-                        <option value="Nourriture Froide">Nourriture Froide</option>
-                    </select>
-                </div>
+                <select id="typeFilter" class="form-select border-dark rounded-pill" style="width: auto;">
+                    <option value="all">Tous les types</option>
+                    <option value="Boisson Chaude">Boisson Chaude</option>
+                    <option value="Boisson Froide">Boisson Froide</option>
+                    <option value="Nourriture Chaude">Nourriture Chaude</option>
+                    <option value="Nourriture Froide">Nourriture Froide</option>
+                </select>
 
-                <div class="ms-auto">
-                    <?php if (isset($_GET['alerte'])): ?>
-                        <a href="index.php?module=gestionnaire&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-dark rounded-pill px-4">TOUT AFFICHER</a>
+                <div class="ms-auto d-flex gap-2">
+                    <?php if ($isAlerteActive): ?>
+                        <a href="index.php?module=gestionnaire&id_buvette=<?= $id_buvette ?>" class="btn btn-danger text-white rounded-pill px-4">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>QUITTER ALERTES
+                        </a>
                     <?php else: ?>
-                        <a href="index.php?module=gestionnaire&id_buvette=<?= $id_buvette ?>&alerte=1" class="btn btn-dark rounded-pill px-4">ALERTES STOCK</a>
+                        <a href="index.php?module=gestionnaire&id_buvette=<?= $id_buvette ?>&alerte=1" class="btn btn-outline-dark rounded-pill px-4">
+                            <i class="bi bi-exclamation-triangle me-2"></i>ALERTES
+                        </a>
                     <?php endif; ?>
-                    <a href="index.php?module=gestionnaire&action=gerer_adhesions&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-dark rounded-pill px-4 ms-2">
-                        <i class="bi bi-people-fill me-2"></i>MEMBRES
+
+                    <a href="index.php?module=gestionnaire&action=gerer_adhesions&id_buvette=<?= $id_buvette ?>" class="btn btn-dark rounded-pill px-4">
+                        <i class="bi bi-people-fill"></i>
                     </a>
                 </div>
             </div>
@@ -165,13 +206,19 @@ class VueGestionnaire {
                         <a href="index.php?module=gestionnaire&action=details&id=<?= $p['id_produit'] ?>&id_buvette=<?= $id_buvette ?>" class="text-decoration-none">
                             <div class="card h-100 border-0 shadow-sm rounded-4 p-3 text-center bg-white transition-hover">
                                 <?php if ($alerte): ?>
-                                    <span class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle"></span>
+                                    <span class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle" style="z-index: 2;"></span>
                                 <?php endif; ?>
-                                <div class="mb-2 d-flex align-items-center justify-content-center" style="height: 80px;">
-                                    <img src="public/img/<?= htmlspecialchars($p['image_produit']) ?>" class="img-fluid" style="max-height: 80px; object-fit: contain;">
+
+                                <div class="mb-2 d-flex align-items-center justify-content-center bg-light rounded-3" style="height: 100px;">
+                                    <?php
+                                    $imagePath = "public/img/" . htmlspecialchars($p['image_produit']);
+                                    $src = (!empty($p['image_produit']) && file_exists($imagePath)) ? $imagePath : "public/img/default.png";
+                                    ?>
+                                    <img src="<?= $src ?>" class="img-fluid" style="max-height: 90px; object-fit: contain;" alt="<?= htmlspecialchars($p['nom_produit']) ?>">
                                 </div>
-                                <h6 class="small fw-bold text-uppercase mb-1 text-dark text-truncate"><?= htmlspecialchars($p['nom_produit']) ?></h6>
-                                <p class="mb-0 small <?= $alerte ? 'fw-bold text-danger' : 'text-muted' ?>">Stock : <?= $p['quantite'] ?></p>
+
+                                <h6 class="small fw-bold text-uppercase mb-1 text-truncate" style="color: #212529 !important;"><?= htmlspecialchars($p['nom_produit']) ?></h6>
+                                <p class="mb-0 small fw-bold" style="color: <?= $alerte ? '#dc3545' : '#6c757d' ?> !important;">Stock : <?= $p['quantite'] ?></p>
                             </div>
                         </a>
                     </div>
@@ -200,20 +247,16 @@ class VueGestionnaire {
                 const textValue = searchInput.value.toLowerCase();
                 const typeValue = typeFilter.value;
 
-                // 1. Filtrer les cartes
                 cards.forEach(card => {
                     const productName = card.getAttribute('data-name');
                     const productType = card.getAttribute('data-type');
                     const matchesText = productName.includes(textValue);
                     const matchesType = (typeValue === 'all' || productType === typeValue);
-
                     card.style.display = (matchesText && matchesType) ? '' : 'none';
                 });
 
-                // 2. Filtrer les titres de catégories
                 titles.forEach(title => {
                     const titleType = title.getAttribute('data-type-title');
-
                     if (typeValue === 'all') {
                         title.style.display = '';
                     } else if (titleType === typeValue) {
@@ -223,18 +266,9 @@ class VueGestionnaire {
                     }
                 });
             }
-
             searchInput.addEventListener('keyup', filterProducts);
             typeFilter.addEventListener('change', filterProducts);
         </script>
-
-        <style>
-            .transition-hover:hover {
-                transform: translateY(-5px);
-                transition: transform 0.3s ease;
-                box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-            }
-        </style>
         <?php
     }
 
@@ -254,6 +288,7 @@ class VueGestionnaire {
         </div>
         <?php
     }
+
     public function afficherGestionAdhesions($id_buvette, $membres, $demandes, $token) {
         ?>
         <div class="container mt-5 pt-5">
@@ -273,7 +308,7 @@ class VueGestionnaire {
                                     <a href="index.php?module=gestionnaire&action=refuser_demande&id_utilisateur=<?= $d['id_utilisateur'] ?>&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-danger btn-sm rounded-pill px-3">Refuser</a>
                                 </td>
                             </tr>
-                        <?php endforeach; if(empty($demandes)) echo "<tr><td colspan='2' class='text-muted'>Aucune demande.</td></tr>"; ?>
+                        <?php endforeach; if(empty($demandes)) echo "<tr><td colspan='2' class='text-muted text-center'>Aucune demande.</td></tr>"; ?>
                         </tbody>
                     </table>
                 </div>
@@ -301,6 +336,29 @@ class VueGestionnaire {
             </div>
             <div class="mt-4"><a href="index.php?module=gestionnaire&id_buvette=<?= $id_buvette ?>" class="btn btn-dark rounded-pill">Retour</a></div>
         </div>
+        <?php
+    }
+    public function afficherNotification($message, $type = 'success') {
+        $bgClass = ($type === 'success') ? 'bg-success' : 'bg-danger';
+        ?>
+        <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+            <div id="liveToast" class="toast align-items-center text-white <?= $bgClass ?> border-0 shadow-lg rounded-4" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body fw-bold">
+                        <i class="bi bi-check-circle-fill me-2"></i> <?= htmlspecialchars($message) ?>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const toastElement = document.getElementById('liveToast');
+                const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+                toast.show();
+            });
+        </script>
         <?php
     }
 }
