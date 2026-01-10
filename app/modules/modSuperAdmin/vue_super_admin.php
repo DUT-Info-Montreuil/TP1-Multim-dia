@@ -8,7 +8,7 @@ class VueSuperAdmin {
             <div class="row mb-4">
                 <div class="col-md-12">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h1 class="h2">Panneau d'Administration</h1>
+                        <h1 class="font-handwritten">Panneau d'Administration</h1>
                     </div>
                 </div>
             </div>
@@ -94,7 +94,7 @@ class VueSuperAdmin {
                 <div class="col-md-4 mb-3">
                     <div class="card h-100">
                         <div class="card-body text-center">
-                            <i class="fas fa-users-cog fa-3x text-success mb-3"></i>
+                            <i class="fas fa-users-cog fa-3x text-warning mb-3"></i>
                             <h5 class="card-title">Gestion des Gestionnaires</h5>
                             <p class="card-text">Attribuer, modifier et retirer les rôles de gestionnaire</p>
                             <a href="index.php?module=superadmin&action=gestion_gestionnaires" class="btn btn-warning">
@@ -124,7 +124,7 @@ class VueSuperAdmin {
         ?>
         <div class="container mt-5 pt-5">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="h2">Gestion des Buvettes</h1>
+                <h1 class="font-handwritten">Gestion des Buvettes</h1>
                 <a href="index.php?module=superadmin" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Retour au tableau de bord
                 </a>
@@ -283,11 +283,11 @@ class VueSuperAdmin {
         <?php
     }
 
-    public function afficherGestionGestionnaires($gestionnaires, $utilisateursDisponibles, $buvettesDisponibles, $message = null) {
+    public function afficherGestionGestionnaires($gestionnaires, $utilisateursDisponibles, $buvettesDisponibles, $token, $message = null) {
         ?>
         <div class="container mt-5 pt-5">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="h2">Gestion des Gestionnaires</h1>
+                <h1 class="font-handwritten">Gestion des Gestionnaires</h1>
                 <div>
                     <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#attribuerGestionnaireModal">
                         <i class="fas fa-plus"></i> Attribuer un Gestionnaire
@@ -362,6 +362,7 @@ class VueSuperAdmin {
             <div class="modal-dialog">
                 <div class="modal-content">
                     <form method="POST">
+                        <input type="hidden" name="csrf_token" value="<?= $token ?>">
                         <div class="modal-header">
                             <h5 class="modal-title">Attribuer un Gestionnaire</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -407,6 +408,7 @@ class VueSuperAdmin {
             <div class="modal-dialog">
                 <div class="modal-content">
                     <form method="POST">
+                        <input type="hidden" name="csrf_token" value="<?= $token ?>">
                         <div class="modal-header">
                             <h5 class="modal-title">Modifier l'assignation</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -443,6 +445,7 @@ class VueSuperAdmin {
             <div class="modal-dialog">
                 <div class="modal-content">
                     <form method="POST" action="index.php?module=superadmin&action=retirer_gestionnaire">
+                        <input type="hidden" name="csrf_token" value="<?= $token ?>">
                         <div class="modal-header">
                             <h5 class="modal-title">Retirer le rôle de gestionnaire</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -485,7 +488,7 @@ class VueSuperAdmin {
         ?>
         <div class="container mt-5 pt-5">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="h2">Journal d'Activité</h1>
+                <h1 class="font-handwritten">Journal d'Activité</h1>
                 <a href="index.php?module=superadmin" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Retour
                 </a>

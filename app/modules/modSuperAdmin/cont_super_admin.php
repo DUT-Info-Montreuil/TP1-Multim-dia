@@ -1,7 +1,7 @@
 <?php
 require_once 'vue_super_admin.php';
 require_once 'modele_super_admin.php';
-require_once __DIR__ . '/../../../csrf.php'; // Ajout de cette ligne
+require_once __DIR__ . '/../../../csrf.php';
 
 class ContSuperAdmin {
     private $vue;
@@ -24,9 +24,9 @@ class ContSuperAdmin {
             case 'gestion_buvettes':
                 $this->gestionBuvettes();
                 break;
-//            case 'gestion_gestionnaires':
-//                $this->gestionGestionnaires();
-//                break;
+            case 'gestion_gestionnaires':
+                $this->gestionGestionnaires();
+                break;
 //            case 'modifier_buvette':
 //                $this->modifierBuvette();
 //                break;
@@ -39,9 +39,9 @@ class ContSuperAdmin {
 //            case 'modifier_gestionnaire':
 //                $this->modifierGestionnaire();
 //                break;
-//            case 'retirer_gestionnaire':
-//                $this->retirerGestionnaire();
-//                break;
+            case 'retirer_gestionnaire':
+                $this->retirerGestionnaire();
+                break;
             case 'journal_activite':
                 $this->journalActivite();
                 break;
@@ -99,12 +99,84 @@ class ContSuperAdmin {
             }
         }
 
-        // passer CSRF a la vue
         $token = $this->csrf->getToken();
         $this->vue->afficherGestionBuvettes($buvettes, $token, $message);
     }
 
 
+    private function gestionGestionnaires() {
+        $token = $this->csrf->getToken();
+
+        // Récupérer les données nécessaires
+        $gestionnaires = $this->modele->getGestionnaires();
+        $utilisateursDisponibles = $this->modele->getUtilisateursSansRole();
+        $buvettesDisponibles = $this->modele->getBuvettesSansGestionnaire();
+
+        $message = null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+            if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
+                die("Erreur de sécurité CSRF");
+            }
+
+            switch ($_POST['action']) {
+                case 'attribuer':
+                    if (isset($_POST['id_utilisateur'], $_POST['id_buvette'])) {
+                        $result = $this->modele->attribuerRoleGestionnaire(
+                            $_POST['id_utilisateur'],
+                            $_POST['id_buvette']
+                        );
+                        if ($result) {
+                            $this->modele->ajouterJournalActivite(
+                                'Attribution gestionnaire',
+                                'Utilisateur ID: ' . $_POST['id_utilisateur'],
+                                'Buvette ID: ' . $_POST['id_buvette']
+                            );
+                            $message = "Gestionnaire attribué avec succès";
+                            $gestionnaires = $this->modele->getGestionnaires();
+                            $utilisateursDisponibles = $this->modele->getUtilisateursSansRole();
+                            $buvettesDisponibles = $this->modele->getBuvettesSansGestionnaire();
+                        } else {
+                            $message = "Erreur : Cette buvette a déjà un gestionnaire ou l'utilisateur est déjà gestionnaire d'une autre buvette";
+                        }
+                    }
+                    break;
+
+                case 'modifier':
+                    if (isset($_POST['id_utilisateur'], $_POST['id_buvette'])) {
+                        $result = $this->modele->modifierAffectationGestionnaire(
+                            $_POST['id_utilisateur'],
+                            $_POST['id_buvette']
+                        );
+                        if ($result) {
+                            $this->modele->ajouterJournalActivite(
+                                'Modification affectation',
+                                'Utilisateur ID: ' . $_POST['id_utilisateur'],
+                                'Nouvelle buvette ID: ' . $_POST['id_buvette']
+                            );
+                            $message = "Affectation modifiée avec succès";
+                            $gestionnaires = $this->modele->getGestionnaires();
+                            $buvettesDisponibles = $this->modele->getBuvettesSansGestionnaire();
+                        } else {
+                            $message = "Erreur : Cette buvette a déjà un gestionnaire";
+                        }
+                    }
+            }
+        }
+
+        if (isset($_GET['message'])) {
+            switch ($_GET['message']) {
+                case 'retirer':
+                    $message = "Rôle de gestionnaire retiré avec succès";
+                    break;
+                case 'error':
+                    $message = "Erreur lors de l'opération";
+                    break;
+            }
+        }
+
+        $this->vue->afficherGestionGestionnaires($gestionnaires, $utilisateursDisponibles, $buvettesDisponibles, $token, $message);
+    }
     private function supprimerBuvette() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_buvette'])) {
             if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
@@ -127,6 +199,27 @@ class ContSuperAdmin {
         }
     }
 
+    private function retirerGestionnaire() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_utilisateur'])) {
+            if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
+                die("Erreur de sécurité CSRF");
+            }
+
+            $id_utilisateur = $_POST['id_utilisateur'];
+            $result = $this->modele->retirerRoleGestionnaire($id_utilisateur);
+
+            if ($result) {
+                header('Location: index.php?module=superadmin&action=gestion_gestionnaires&message=retired');
+                exit();
+            } else {
+                header('Location: index.php?module=superadmin&action=gestion_gestionnaires&message=error');
+                exit();
+            }
+        } else {
+            header('Location: index.php?module=superadmin&action=gestion_gestionnaires');
+            exit();
+        }
+    }
 
     private function journalActivite() {
         $activites = $this->modele->getJournalActivite();
