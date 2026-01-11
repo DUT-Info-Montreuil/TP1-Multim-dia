@@ -73,13 +73,12 @@ class ContSuperAdmin {
                     $_POST['description']
                 );
                 if ($result) {
-                    if (method_exists($this->modele, 'ajouterJournalActivite')) {
-                        $this->modele->ajouterJournalActivite(
-                            'Modification buvette',
-                            'Buvette ID: ' . $_POST['id_buvette'],
-                            'Nom modifié en: ' . $_POST['nom']
-                        );
-                    }
+                    $buvette = $this->modele->getBuvetteById($_POST['id_buvette']);
+                    $this->modele->ajouterJournalActivite(
+                        'Modification buvette',
+                        'ID: ' . $_POST['id_buvette'] .' ' . $buvette['nom'],
+                        'Nom modifié en: ' . $_POST['nom']
+                    );
                     $message = "Buvette modifiée avec succès";
                     $buvettes = $this->modele->getBuvettes();
                 } else {
@@ -107,7 +106,6 @@ class ContSuperAdmin {
     private function gestionGestionnaires() {
         $token = $this->csrf->getToken();
 
-        // Récupérer les données nécessaires
         $gestionnaires = $this->modele->getGestionnaires();
         $utilisateursDisponibles = $this->modele->getUtilisateursSansRole();
         $buvettesDisponibles = $this->modele->getBuvettesSansGestionnaire();
@@ -122,15 +120,19 @@ class ContSuperAdmin {
             switch ($_POST['action']) {
                 case 'attribuer':
                     if (isset($_POST['id_utilisateur'], $_POST['id_buvette'])) {
+                        $utilisateur = $this->modele->getUtilisateurById($_POST['id_utilisateur']);
+
                         $result = $this->modele->attribuerRoleGestionnaire(
                             $_POST['id_utilisateur'],
                             $_POST['id_buvette']
                         );
                         if ($result) {
+                            $buvette = $this->modele->getBuvetteById($_POST['id_buvette']);
+
                             $this->modele->ajouterJournalActivite(
                                 'Attribution gestionnaire',
-                                'Utilisateur ID: ' . $_POST['id_utilisateur'],
-                                'Buvette ID: ' . $_POST['id_buvette']
+                                $utilisateur['email'],
+                                'ID: ' . $_POST['id_buvette'] . ' Nom:' . $buvette['nom']
                             );
                             $message = "Gestionnaire attribué avec succès";
                             $gestionnaires = $this->modele->getGestionnaires();
@@ -142,25 +144,28 @@ class ContSuperAdmin {
                     }
                     break;
 
-                case 'modifier':
-                    if (isset($_POST['id_utilisateur'], $_POST['id_buvette'])) {
-                        $result = $this->modele->modifierAffectationGestionnaire(
-                            $_POST['id_utilisateur'],
-                            $_POST['id_buvette']
-                        );
-                        if ($result) {
-                            $this->modele->ajouterJournalActivite(
-                                'Modification affectation',
-                                'Utilisateur ID: ' . $_POST['id_utilisateur'],
-                                'Nouvelle buvette ID: ' . $_POST['id_buvette']
-                            );
-                            $message = "Affectation modifiée avec succès";
-                            $gestionnaires = $this->modele->getGestionnaires();
-                            $buvettesDisponibles = $this->modele->getBuvettesSansGestionnaire();
-                        } else {
-                            $message = "Erreur : Cette buvette a déjà un gestionnaire";
-                        }
-                    }
+//                case 'modifier':
+//                    if (isset($_POST['id_utilisateur'], $_POST['id_buvette'])) {
+//                        $utilisateur = $this->modele->getUtilisateurById($_POST['id_utilisateur']);
+//
+//                        $result = $this->modele->modifierAffectationGestionnaire(
+//                            $_POST['id_utilisateur'],
+//                            $_POST['id_buvette']
+//                        );
+//                        if ($result) {
+//                            $buvette = $this->modele->getBuvetteById($_POST['id_buvette']);
+//                            $this->modele->ajouterJournalActivite(
+//                                'Modification affectation',
+//                                $utilisateur['email'],
+//                                'Nouvelle buvette ID: ' . $_POST['id_buvette'] . ' Nom: ' . $buvette['nom']
+//                            );
+//                            $message = "Affectation modifiée avec succès";
+//                            $gestionnaires = $this->modele->getGestionnaires();
+//                            $buvettesDisponibles = $this->modele->getBuvettesSansGestionnaire();
+//                        } else {
+//                            $message = "Erreur : Cette buvette a déjà un gestionnaire";
+//                        }
+//                    }
             }
         }
 
@@ -206,9 +211,20 @@ class ContSuperAdmin {
             }
 
             $id_utilisateur = $_POST['id_utilisateur'];
+
+            $utilisateur = $this->modele->getUtilisateurById($id_utilisateur);
+
             $result = $this->modele->retirerRoleGestionnaire($id_utilisateur);
 
             if ($result) {
+                if ($utilisateur) {
+                    $this->modele->ajouterJournalActivite(
+                        'Retrait rôle gestionnaire',
+                        $utilisateur['email'],
+                        'Rôle retiré'
+                    );
+                }
+
                 header('Location: index.php?module=superadmin&action=gestion_gestionnaires&message=retired');
                 exit();
             } else {

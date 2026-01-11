@@ -46,11 +46,11 @@ class ModeleSuperAdmin {
 
 /*    public function getBuvettes() {
         $stmt = $this->bdd->prepare("
-            SELECT b.*, 
-                   u.nom as gestionnaire_nom, 
+            SELECT b.*,
+                   u.nom as gestionnaire_nom,
                    u.prenom as gestionnaire_prenom,
                    u.id_utilisateur as gestionnaire_id
-            FROM une_buvette b 
+            FROM une_buvette b
             LEFT JOIN utilisateur u ON b.id_gestionnaire = u.id_utilisateur
             WHERE b.archivee = 0
             ORDER BY b.nom
@@ -68,7 +68,6 @@ class ModeleSuperAdmin {
             u.id_utilisateur as gestionnaire_id
         FROM une_buvette b 
         LEFT JOIN (
-            -- gestionnaire actif pour chaque buvette
             SELECT a.id_buvette, a.id_utilisateur
             FROM affecter a
             INNER JOIN role_utilisateur r ON a.id_role = r.id_role
@@ -98,12 +97,6 @@ class ModeleSuperAdmin {
 
     public function ajouterJournalActivite($action, $cible, $details = null) {
         try {
-            $id_utilisateur = isset($_SESSION['id_utilisateur']) ? $_SESSION['id_utilisateur'] : null;
-
-            if (!$id_utilisateur) {
-                return false;
-            }
-
             $stmt = $this->bdd->prepare("
             INSERT INTO journal_activite (action, cible, details, id_utilisateur, horodatage) 
             VALUES (:action, :cible, :details, :id_utilisateur, NOW())
@@ -113,7 +106,7 @@ class ModeleSuperAdmin {
                 ':action' => $action,
                 ':cible' => $cible,
                 ':details' => $details,
-                ':id_utilisateur' => $id_utilisateur
+                ':id_utilisateur' => $_SESSION['user']['id_utilisateur']
             ]);
 
         } catch (PDOException $e) {
@@ -124,7 +117,7 @@ class ModeleSuperAdmin {
     public function getJournalActivite($limit = 100) {
         try {
             $stmt = $this->bdd->prepare("
-            SELECT ja.*, u.nom, u.prenom 
+            SELECT ja.*, u.email
             FROM journal_activite ja
             JOIN utilisateur u ON ja.id_utilisateur = u.id_utilisateur
             ORDER BY ja.horodatage DESC
@@ -390,19 +383,55 @@ class ModeleSuperAdmin {
 
             $result = $stmt->execute([':id_utilisateur' => $id_utilisateur]);
 
-            if ($result) {
-                $this->ajouterJournalActivite(
-                    'Retrait rôle gestionnaire',
-                    'Utilisateur ID: ' . $id_utilisateur,
-                    'Rôle retiré définitivement'
-                );
-            }
-
             return $result;
 
         } catch (PDOException $e) {
             return false;
         }
     }
+    public function getUtilisateurById($id_utilisateur) {
+        try {
+            $stmt = $this->bdd->prepare("
+            SELECT id_utilisateur, nom, prenom, email 
+            FROM utilisateur 
+            WHERE id_utilisateur = :id_utilisateur
+        ");
+            $stmt->execute([':id_utilisateur' => $id_utilisateur]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            return null;
+        }
+    }
+
+    public function getBuvetteById($id_buvette) {
+        try {
+            $stmt = $this->bdd->prepare("
+            SELECT
+                b.*,
+                u.nom as gestionnaire_nom,
+                u.prenom as gestionnaire_prenom,
+                u.id_utilisateur as gestionnaire_id
+            FROM une_buvette b
+            LEFT JOIN (
+                SELECT a.id_buvette, a.id_utilisateur
+                FROM affecter a
+                INNER JOIN role_utilisateur r ON a.id_role = r.id_role
+                WHERE r.nom_role = 'gestionnaire'
+                AND a.date_debut <= CURDATE()
+                AND (a.date_fin IS NULL OR a.date_fin > CURDATE())
+            ) gestion_actuelle ON b.id_buvette = gestion_actuelle.id_buvette
+            LEFT JOIN utilisateur u ON gestion_actuelle.id_utilisateur = u.id_utilisateur
+            WHERE b.id_buvette = :id
+              AND b.archivee IS NULL
+            LIMIT 1
+        ");
+            $stmt->execute([':id' => $id_buvette]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ?: null;
+        } catch (PDOException $e) {
+            return null;
+        }
+    }
+
 }
 ?>

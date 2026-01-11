@@ -162,18 +162,18 @@ class VueSuperAdmin {
                                     </td>
                                     <td>
                                         <?php if ($buvette['gestionnaire_nom']): ?>
-                                            <span class="badge bg-success">
+                                            <span class="badge bg-success fs-6">
                                                     <?= htmlspecialchars($buvette['gestionnaire_nom'] . ' ' . $buvette['gestionnaire_prenom']) ?>
                                                 </span>
                                         <?php else: ?>
-                                            <span class="badge bg-warning">Aucun gestionnaire</span>
+                                            <span class="badge bg-warning fs-6">Aucun gestionnaire</span>
                                         <?php endif; ?>
                                     </td>
                                     <td>
                                         <?php if ($buvette['est_ouverte']): ?>
-                                            <span class="badge bg-success">Ouverte</span>
+                                            <span class="badge bg-success fs-6">Ouverte</span>
                                         <?php else: ?>
-                                            <span class="badge bg-danger">Fermée</span>
+                                            <span class="badge bg-danger fs-6">Fermée</span>
                                         <?php endif; ?>
                                     </td>
                                     <td>
@@ -266,7 +266,6 @@ class VueSuperAdmin {
         </div>
 
         <script>
-            // Gestion des modals
             document.getElementById('modifierBuvetteModal').addEventListener('show.bs.modal', function (event) {
                 var button = event.relatedTarget;
                 document.getElementById('modifier_id_buvette').value = button.getAttribute('data-id');
@@ -327,19 +326,12 @@ class VueSuperAdmin {
                                     <td><?= htmlspecialchars($gestionnaire['email']) ?></td>
                                     <td>
                                         <?php if ($gestionnaire['buvette_nom']): ?>
-                                            <span class="badge bg-primary"><?= htmlspecialchars($gestionnaire['buvette_nom']) ?></span>
+                                            <span class="badge bg-primary fs-6"><?= htmlspecialchars($gestionnaire['buvette_nom']) ?></span>
                                         <?php else: ?>
-                                            <span class="badge bg-warning">Aucune buvette</span>
+                                            <span class="badge bg-warning fs-6">Aucune buvette</span>
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <button type="button" class="btn btn-sm btn-outline-primary me-1"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#modifierGestionnaireModal"
-                                                data-id="<?= $gestionnaire['id_utilisateur'] ?>"
-                                                data-nom="<?= htmlspecialchars($gestionnaire['nom'] . ' ' . $gestionnaire['prenom']) ?>">
-                                            <i class="fas fa-edit"></i> Modifier
-                                        </button>
                                         <button type="button" class="btn btn-sm btn-outline-danger"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#retirerGestionnaireModal"
@@ -353,6 +345,12 @@ class VueSuperAdmin {
                             </tbody>
                         </table>
                     </div>
+                    <?php if (empty($gestionnaire)): ?>
+                        <div class="text-center py-4">
+                            <p class="text-muted">Aucune gestionnaire enregistré</p>
+                        </div>
+                    <?php endif; ?>
+
                 </div>
             </div>
         </div>
@@ -422,7 +420,7 @@ class VueSuperAdmin {
                             <div class="mb-3">
                                 <label for="modifier_id_buvette" class="form-label">Nouvelle buvette</label>
                                 <select class="form-control" name="id_buvette" id="modifier_id_buvette">
-                                    <option value="">Aucune buvette (retirer de l'assignation actuelle)</option>
+<!--                                    <option value="">Aucune buvette (retirer de l'assignation actuelle)</option>-->
                                     <?php foreach ($buvettesDisponibles as $buvette): ?>
                                         <option value="<?= $buvette['id_buvette'] ?>">
                                             <?= htmlspecialchars($buvette['nom']) ?>
@@ -486,6 +484,12 @@ class VueSuperAdmin {
 
     public function afficherJournalActivite($activites) {
         ?>
+        <style>
+            .bg-purple {
+                background-color: #6f42c1;
+                color: white;
+            }
+        </style>
         <div class="container mt-5 pt-5">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="font-handwritten">Journal d'Activité</h1>
@@ -515,11 +519,11 @@ class VueSuperAdmin {
                                 <tr>
                                     <td><?= date('d/m/Y H:i:s', strtotime($activite['horodatage'])) ?></td>
                                     <td>
-                                        <span class="badge bg-info"><?= htmlspecialchars($activite['action']) ?></span>
+                                        <span class="badge bg-purple fs-6"><?= htmlspecialchars($activite['action']) ?></span>
                                     </td>
                                     <td><?= htmlspecialchars($activite['cible']) ?></td>
                                     <td><?= htmlspecialchars($activite['details']) ?></td>
-                                    <td><?= htmlspecialchars($activite['nom'] . ' ' . $activite['prenom']) ?></td>
+                                    <td><?= htmlspecialchars($activite['email']) ?></td>
                                 </tr>
                             <?php endforeach; ?>
                             </tbody>
