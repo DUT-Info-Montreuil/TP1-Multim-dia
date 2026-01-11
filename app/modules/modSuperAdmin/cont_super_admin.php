@@ -27,6 +27,9 @@ class ContSuperAdmin {
             case 'gestion_gestionnaires':
                 $this->gestionGestionnaires();
                 break;
+            case 'creer_buvette':
+                $this->creerBuvette();
+                break;
 //            case 'modifier_buvette':
 //                $this->modifierBuvette();
 //                break;
@@ -50,7 +53,34 @@ class ContSuperAdmin {
         }
     }
 
+    private function creerBuvette() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'creer') {
+            // CSRF validation
+            if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
+                die("Erreur de sécurité CSRF");
+            }
 
+            if (isset($_POST['nom'], $_POST['description'])) {
+                $result = $this->modele->creerBuvette(
+                    $_POST['nom'],
+                    $_POST['description']
+                );
+
+                if ($result) {
+                    $this->modele->ajouterJournalActivite(
+                        'Création buvette',
+                        'Nom: ' . $_POST['nom'],
+                        'Description: ' . ($_POST['description'] ?? 'Non spécifiée')
+                    );
+                    header('Location: index.php?module=superadmin&action=gestion_buvettes&message=created');
+                    exit();
+                } else {
+                    header('Location: index.php?module=superadmin&action=gestion_buvettes&message=error_creation');
+                    exit();
+                }
+            }
+        }
+    }
     private function afficherTableauBord() {
         $stats = $this->modele->getStatistiques();
         $this->vue->afficherTableauBord($stats);
@@ -67,16 +97,19 @@ class ContSuperAdmin {
             }
 
             if ($_POST['action'] === 'modifier' && isset($_POST['id_buvette'])) {
+                $est_ouverte = isset($_POST['est_ouverte']) ? 1 : 0;
+
                 $result = $this->modele->modifierBuvette(
                     $_POST['id_buvette'],
                     $_POST['nom'],
-                    $_POST['description']
+                    $_POST['description'],
+                    $est_ouverte
                 );
                 if ($result) {
                     $buvette = $this->modele->getBuvetteById($_POST['id_buvette']);
                     $this->modele->ajouterJournalActivite(
                         'Modification buvette',
-                        'ID: ' . $_POST['id_buvette'] .' ' . $buvette['nom'],
+                        'ID: ' . $_POST['id_buvette'] . ' ' . $buvette['nom'],
                         'Nom modifié en: ' . $_POST['nom']
                     );
                     $message = "Buvette modifiée avec succès";
@@ -89,11 +122,20 @@ class ContSuperAdmin {
 
         if (isset($_GET['message'])) {
             switch($_GET['message']) {
+                case 'created':
+                    $message = "Buvette créée avec succès";
+                    break;
                 case 'archived':
                     $message = "Buvette archivée avec succès";
                     break;
                 case 'error':
                     $message = "Erreur lors de l'opération";
+                    break;
+                case 'error_creation':
+                    $message = "Erreur lors de la création de la buvette";
+                    break;
+                case 'statut_updated':
+                    $message = "Statut de la buvette modifié avec succès";
                     break;
             }
         }
@@ -132,7 +174,7 @@ class ContSuperAdmin {
                             $this->modele->ajouterJournalActivite(
                                 'Attribution gestionnaire',
                                 $utilisateur['email'],
-                                'ID: ' . $_POST['id_buvette'] . ' Nom:' . $buvette['nom']
+                                'ID: ' . $_POST['id_buvette'] . ' Nom: ' . $buvette['nom']
                             );
                             $message = "Gestionnaire attribué avec succès";
                             $gestionnaires = $this->modele->getGestionnaires();

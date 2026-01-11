@@ -4,7 +4,15 @@ class VueSuperAdmin {
 
     public function afficherTableauBord($stats) {
         ?>
-        <div class="container mt-5 pt-5">
+        <style>
+            .mt-7{
+                margin-top: 4rem !important;
+            }
+            .pt-7{
+                padding-top: 4rem !important;
+            }}
+        </style>
+        <div class="container mt-7 pt-7">
             <div class="row mb-4">
                 <div class="col-md-12">
                     <div class="d-flex justify-content-between align-items-center">
@@ -125,9 +133,14 @@ class VueSuperAdmin {
         <div class="container mt-5 pt-5">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="font-handwritten">Gestion des Buvettes</h1>
-                <a href="index.php?module=superadmin" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Retour au tableau de bord
-                </a>
+                <div>
+                    <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#creeBuvetteModal">
+                        <i class="fas fa-plus"></i> Crée une Buvette
+                    </button>
+                    <a href="index.php?module=superadmin" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+                    </a>
+                </div>
             </div>
 
             <?php if ($message): ?>
@@ -182,7 +195,8 @@ class VueSuperAdmin {
                                                 data-bs-target="#modifierBuvetteModal"
                                                 data-id="<?= $buvette['id_buvette'] ?>"
                                                 data-nom="<?= htmlspecialchars($buvette['nom']) ?>"
-                                                data-description="<?= htmlspecialchars($buvette['description']) ?>">
+                                                data-description="<?= htmlspecialchars($buvette['description']) ?>"
+                                                data-est-ouverte="<?= $buvette['est_ouverte'] ?>">
                                             <i class="fas fa-edit"></i> Modifier
                                         </button>
                                         <button type="button" class="btn btn-sm btn-outline-danger"
@@ -198,6 +212,42 @@ class VueSuperAdmin {
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Créer Buvette -->
+        <div class="modal fade" id="creeBuvetteModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="POST" action="index.php?module=superadmin&action=creer_buvette">
+                        <input type="hidden" name="csrf_token" value="<?= $token ?>">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Créer une Buvette</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" name="action" value="creer">
+
+                            <div class="mb-3">
+                                <label for="nom" class="form-label">Nom de la buvette *</label>
+                                <input type="text" class="form-control" name="nom" required
+                                       placeholder="Ex: Buvette du terrain A">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" name="description" rows="3"
+                                          placeholder="Description de la buvette (emplacement, caractéristiques...)"
+                                          maxlength="255"></textarea>
+                                <div class="form-text">Maximum 255 caractères.</div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <button type="submit" class="btn btn-success">Créer la buvette</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -224,6 +274,22 @@ class VueSuperAdmin {
                             <div class="mb-3">
                                 <label for="modifier_description" class="form-label">Description</label>
                                 <textarea class="form-control" id="modifier_description" name="description" rows="3"></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox"
+                                           id="modifier_est_ouverte"
+                                           name="est_ouverte"
+                                           value="1">
+                                    <label class="form-check-label" for="modifier_est_ouverte">
+                                        Buvette ouverte
+                                    </label>
+                                </div>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle"></i>
+                                    Si activé, la buvette sera marquée comme "ouverte".
+                                </div>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -267,14 +333,17 @@ class VueSuperAdmin {
 
         <script>
             document.getElementById('modifierBuvetteModal').addEventListener('show.bs.modal', function (event) {
-                var button = event.relatedTarget;
+                let button = event.relatedTarget;
                 document.getElementById('modifier_id_buvette').value = button.getAttribute('data-id');
                 document.getElementById('modifier_nom').value = button.getAttribute('data-nom');
                 document.getElementById('modifier_description').value = button.getAttribute('data-description');
+
+                let estOuverte = button.getAttribute('data-est-ouverte');
+                document.getElementById('modifier_est_ouverte').checked = (estOuverte === '1');
             });
 
             document.getElementById('supprimerBuvetteModal').addEventListener('show.bs.modal', function (event) {
-                var button = event.relatedTarget;
+                let button = event.relatedTarget;
                 document.getElementById('supprimer_id_buvette').value = button.getAttribute('data-id');
                 document.getElementById('supprimer_nom_buvette').textContent = button.getAttribute('data-nom');
             });
@@ -468,13 +537,13 @@ class VueSuperAdmin {
 
         <script>
             document.getElementById('modifierGestionnaireModal').addEventListener('show.bs.modal', function (event) {
-                var button = event.relatedTarget;
+                let button = event.relatedTarget;
                 document.getElementById('modifier_id_utilisateur').value = button.getAttribute('data-id');
                 document.getElementById('modifier_nom_gestionnaire').textContent = button.getAttribute('data-nom');
             });
 
             document.getElementById('retirerGestionnaireModal').addEventListener('show.bs.modal', function (event) {
-                var button = event.relatedTarget;
+                let button = event.relatedTarget;
                 document.getElementById('retirer_id_utilisateur').value = button.getAttribute('data-id');
                 document.getElementById('retirer_nom_gestionnaire').textContent = button.getAttribute('data-nom');
             });

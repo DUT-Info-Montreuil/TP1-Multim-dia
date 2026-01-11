@@ -82,14 +82,14 @@ class ModeleSuperAdmin {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    public function modifierBuvette($id, $nom, $description) {
+    public function modifierBuvette($id, $nom, $description, $est_ouverte) {
         try {
             $stmt = $this->bdd->prepare("
                 UPDATE une_buvette 
-                SET nom = ?, description = ? 
+                SET nom = ?, description = ?, est_ouverte = ?
                 WHERE id_buvette = ?
             ");
-            return $stmt->execute([$nom, $description, $id]);
+            return $stmt->execute([$nom, $description, $est_ouverte, $id]);
         } catch (PDOException $e) {
             return false;
         }
@@ -114,17 +114,15 @@ class ModeleSuperAdmin {
         }
     }
 
-    public function getJournalActivite($limit = 100) {
+    public function getJournalActivite() {
         try {
             $stmt = $this->bdd->prepare("
             SELECT ja.*, u.email
             FROM journal_activite ja
             JOIN utilisateur u ON ja.id_utilisateur = u.id_utilisateur
             ORDER BY ja.horodatage DESC
-            LIMIT :limit
         ");
 
-            $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
             $stmt->execute();
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -432,6 +430,21 @@ class ModeleSuperAdmin {
             return null;
         }
     }
+    public function creerBuvette($nom, $description) {
+        try {
+            $stmt = $this->bdd->prepare("
+            INSERT INTO une_buvette (nom, description, est_ouverte, archivee) 
+            VALUES (:nom, :description, 0, NULL)
+        ");
 
+            return $stmt->execute([
+                ':nom' => $nom,
+                ':description' => $description
+            ]);
+
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
 }
 ?>
