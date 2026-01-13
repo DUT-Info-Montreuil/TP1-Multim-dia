@@ -1,6 +1,5 @@
 <?php
-require_once 'Connexion.php';
-
+require_once __DIR__ . '/../../../connexion.php';
 class ModeleBuvettes {
 
 

@@ -8,7 +8,9 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
 
-            <?php if (isset($_SESSION['user'])): ?>
+            <?php
+            require_once __DIR__ . '/../../connexion.php';
+            if (isset($_SESSION['user'])): ?>
 
                 <ul class="navbar-nav mx-auto align-items-center">
                     <li class="nav-item"><a class="nav-link text-white mx-3" href="index.php?module=buvettes">Nos buvettes</a></li>
