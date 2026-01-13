@@ -10,7 +10,7 @@ class VueSuperAdmin {
             }
             .pt-7{
                 padding-top: 4rem !important;
-            }}
+            }
         </style>
         <div class="container mt-7 pt-7">
             <div class="row mb-4">
@@ -553,12 +553,12 @@ class VueSuperAdmin {
 
     public function afficherJournalActivite($activites) {
         ?>
-        <style>
-            .bg-purple {
-                background-color: #6f42c1;
-                color: white;
-            }
-        </style>
+         <style>
+             .bg-purple {
+                 background-color: #6f42c1;
+                 color: white;
+             }
+         </style>
         <div class="container mt-5 pt-5">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="font-handwritten">Journal d'Activité</h1>
