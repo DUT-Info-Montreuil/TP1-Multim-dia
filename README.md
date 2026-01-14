@@ -63,7 +63,7 @@ Ce projet a été réalisé avec rigueur par :
 
 * **F. GUERREIRO MARQUES**
 * **T. AUSOUSSEAU**
-* **M. JEANFORT**
+* **M. JEAN FORT**
 * **E. PEREIRA**
 
 ---
