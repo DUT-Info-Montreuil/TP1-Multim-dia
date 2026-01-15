@@ -30,7 +30,7 @@ class VueCreationBuvette
                                 </div>
                             <?php endif; ?>
 
-                            <form action="index.php?module=creation_buvette&action=creer" method="POST">
+                            <form action="index.php?module=creationBuvette&action=creer" method="POST">
 
                                 <div class="mb-4">
                                     <label for="nom" class="form-label fw-bold text-uppercase small text-muted">Nom de la buvette</label>
