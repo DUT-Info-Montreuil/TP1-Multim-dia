@@ -18,6 +18,10 @@ switch ($module) {
         require_once 'app/modules/modBuvettes/mod_buvettes.php';
         $mod = new ModBuvettes();
         break;
+    case 'gestionnaire':
+        require_once 'app/modules/modGestionnaire/mod_gestionnaire.php';
+        $mod = new ModGestionnaire();
+        break;
     case 'menu':
         require_once 'app/modules/modMenu/mod_menu.php';
         $mod = new ModMenu();

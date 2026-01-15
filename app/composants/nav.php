@@ -36,11 +36,12 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" style="border-radius: 15px;">
                             <li><span class="dropdown-item-text small text-muted">Connecté en tant que :<br><strong><?= htmlspecialchars($_SESSION['user']['prenom']) ?></strong></span></li>
-                            <?php if (($_SESSION['user']['role'] ?? '') === 'Administrateur'): ?>
+
+                            <?php if (($_SESSION['user']['role'] ?? '') === 'Gestionnaire'): ?>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <a class="dropdown-item fw-bold text-primary" href="index.php?module=superadmin">
-                                        <i class="bi bi-shield-lock me-2"></i>Accès Super Admin
+                                    <a class="dropdown-item fw-bold text-primary" href="index.php?module=gestionnaire">
+                                        <i class="bi bi-shield-lock me-2"></i>Accès Staff
                                     </a>
                                 </li>
                             <?php endif; ?>

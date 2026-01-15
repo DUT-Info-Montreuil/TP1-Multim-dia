@@ -20,11 +20,6 @@ class ContConnexion {
 
         switch ($action) {
             case 'verifie_connexion':
-                if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
-                    $this->vue->afficherFormulaireConnexion("Session expirée ou erreur de sécurité.", null, $token);
-                    return;
-                }
-
                 $email = $_POST['email'] ?? '';
                 $password = $_POST['password'] ?? '';
 
