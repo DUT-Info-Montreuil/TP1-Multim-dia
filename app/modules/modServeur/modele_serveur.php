@@ -5,7 +5,7 @@ class ModeleServeur {
 
     public function getListeReservations($idBuvette) {
         $bdd = Connexion::getBdd();
-        // Le WHERE c.id_buvette = ? assure qu'on ne voit que les commandes de CETTE buvette
+        // On récupère aussi les commandes en "Attente Validation" pour que le serveur sache qu'il a envoyé une demande
         $sql = "SELECT c.*, u.nom, u.prenom 
                 FROM commande c
                 JOIN utilisateur u ON c.id_utilisateur = u.id_utilisateur
@@ -39,9 +39,13 @@ class ModeleServeur {
         $sql = "UPDATE commande SET statut = 'Annulé' WHERE id_commande = ?";
         $stmt = $bdd->prepare($sql);
         $stmt->execute([$idCommande]);
+
+        // Si c'était une demande de validation, on la marque comme vue/annulée
+        $sqlNotif = "UPDATE notification_validation SET est_vue = 1 WHERE id_commande = ?";
+        $stmtNotif = $bdd->prepare($sqlNotif);
+        $stmtNotif->execute([$idCommande]);
     }
 
-    // --- VENTE AU COMPTOIR ---
     public function getTousLesProduits() {
         $bdd = Connexion::getBdd();
         return $bdd->query("SELECT * FROM produit")->fetchAll(PDO::FETCH_ASSOC);
@@ -62,18 +66,19 @@ class ModeleServeur {
         try {
             $bdd->beginTransaction();
 
-            // 1. Vérifier le solde
-            $stmt = $bdd->prepare("SELECT solde FROM utilisateur WHERE id_utilisateur = ?");
-            $stmt->execute([$idUtilisateur]);
-            $user = $stmt->fetch();
+            // 1. Vérifier le solde dans la table SOLDE
+            $stmt = $bdd->prepare("SELECT solde FROM solde WHERE id_utilisateur = ? AND id_buvette = ?");
+            $stmt->execute([$idUtilisateur, $idBuvette]);
+            $soldeActuel = $stmt->fetchColumn();
 
-            if (!$user || $user['solde'] < $total) {
-                throw new Exception("Solde insuffisant.");
+            if ($soldeActuel === false || $soldeActuel < $total) {
+                // Pour affichage propre même si solde null
+                $soldeStr = ($soldeActuel === false) ? 0 : $soldeActuel;
+                throw new Exception("Solde insuffisant (Solde : " . $soldeStr . "€).");
             }
 
-            // 2. Créer la commande
-            // MODIFICATION ICI : Statut 'Payé' (En attente) pour qu'elle apparaisse dans "En cours"
-            $stmt = $bdd->prepare("INSERT INTO commande (statut, date_commande, prix_total, id_utilisateur, id_buvette) VALUES ('Payé', NOW(), ?, ?, ?)");
+            // 2. Créer la commande en statut "Attente Validation"
+            $stmt = $bdd->prepare("INSERT INTO commande (statut, date_commande, prix_total, id_utilisateur, id_buvette, est_paye) VALUES ('Attente Validation', NOW(), ?, ?, ?, 0)");
             $stmt->execute([$total, $idUtilisateur, $idBuvette]);
             $idCommande = $bdd->lastInsertId();
 
@@ -83,9 +88,12 @@ class ModeleServeur {
                 $stmt->execute([$idCommande, $item['id'], $item['quantite'], $item['prix']]);
             }
 
-            // 4. Débiter l'utilisateur
-            $stmt = $bdd->prepare("UPDATE utilisateur SET solde = solde - ? WHERE id_utilisateur = ?");
-            $stmt->execute([$total, $idUtilisateur]);
+            // 4. Créer la notification pour le client
+            $stmtNotif = $bdd->prepare("INSERT INTO notification_validation (id_utilisateur, id_commande, montant, date_creation) VALUES (?, ?, ?, NOW())");
+            $stmtNotif->execute([$idUtilisateur, $idCommande, $total]);
+
+            // ON NE DEBITE PAS ENCORE
+            // Le débit se fera via validerPaiementNotification dans ModeleCompte
 
             $bdd->commit();
             return true;
