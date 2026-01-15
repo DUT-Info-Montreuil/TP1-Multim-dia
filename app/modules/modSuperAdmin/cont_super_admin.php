@@ -45,6 +45,15 @@ class ContSuperAdmin {
             case 'retirer_gestionnaire':
                 $this->retirerGestionnaire();
                 break;
+            case 'gestion_demandes_creation':
+                $this->gestionDemandesCreation();
+                break;
+            case 'valider_demande_creation':
+                $this->validerDemandeCreation();
+                break;
+            case 'rejeter_demande_creation':
+                $this->rejeterDemandeCreation();
+                break;
             case 'journal_activite':
                 $this->journalActivite();
                 break;
@@ -78,6 +87,50 @@ class ContSuperAdmin {
                     header('Location: index.php?module=superadmin&action=gestion_buvettes&message=error_creation');
                     exit();
                 }
+            }
+        }
+    }
+
+    private function gestionDemandesCreation() {
+        $demandes = $this->modele->getDemandesCreation();
+        $this->vue->afficherGestionDemandesCreation($demandes);
+    }
+
+    private function validerDemandeCreation() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_demande'])) {
+            if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
+                die("Erreur de sécurité CSRF");
+            }
+
+            $id_demande = $_POST['id_demande'];
+            $result = $this->modele->validerDemandeCreation($id_demande);
+
+            if ($result) {
+                header('Location: index.php?module=superadmin&action=gestion_demandes_creation&message=validee');
+                exit();
+            } else {
+                header('Location: index.php?module=superadmin&action=gestion_demandes_creation&message=error');
+                exit();
+            }
+        }
+    }
+
+    private function rejeterDemandeCreation() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_demande'], $_POST['raison_refus'])) {
+            if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
+                die("Erreur de sécurité CSRF");
+            }
+
+            $id_demande = $_POST['id_demande'];
+            $raison_refus = $_POST['raison_refus'];
+            $result = $this->modele->rejeterDemandeCreation($id_demande, $raison_refus);
+
+            if ($result) {
+                header('Location: index.php?module=superadmin&action=gestion_demandes_creation&message=rejetee');
+                exit();
+            } else {
+                header('Location: index.php?module=superadmin&action=gestion_demandes_creation&message=error');
+                exit();
             }
         }
     }
