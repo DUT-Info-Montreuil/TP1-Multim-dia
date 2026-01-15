@@ -7,9 +7,9 @@ class ModeleGestionnaire {
     public function getBuvettesAutorisees($id_utilisateur) {
         $bdd = Connexion::getBdd();
         $req = $bdd->prepare("
-            SELECT b.* FROM Une_Buvette b
-            INNER JOIN Affecter a ON b.id_buvette = a.id_buvette
-            INNER JOIN Role_Utilisateur r ON a.id_role = r.id_role
+            SELECT b.* FROM une_buvette b
+            INNER JOIN affecter a ON b.id_buvette = a.id_buvette
+            INNER JOIN role_utilisateur r ON a.id_role = r.id_role
             WHERE a.id_utilisateur = ? 
             AND r.nom_role = 'Gestionnaire'
             AND (a.date_fin IS NULL OR a.date_fin >= CURDATE())
