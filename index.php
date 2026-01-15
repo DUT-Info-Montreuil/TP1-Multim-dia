@@ -6,7 +6,8 @@ ob_start();
 $module = isset($_GET['module']) ? $_GET['module'] : 'accueil';
 
 // Seuls l'accueil (contenant Histoire/Galerie) et la connexion sont publics
-$modulesPublics = ['accueil', 'connexion'];
+// Ajout de 'galerie' et 'histoire' dans les modules publics
+$modulesPublics = ['accueil', 'connexion', 'histoire', 'galerie'];
 
 if (!isset($_SESSION['user']) && !in_array($module, $modulesPublics)) {
     header("Location: index.php?module=connexion");
@@ -21,6 +22,10 @@ switch ($module) {
     case 'histoire':
         require_once 'app/modules/modHistoire/mod_histoire.php';
         $mod = new ModHistoire();
+        break;
+    case 'galerie': // Nouveau module Galerie
+        require_once 'app/modules/modGalerie/mod_galerie.php';
+        $mod = new ModGalerie();
         break;
     case 'connexion':
         require_once 'app/modules/modConnexion/mod_connexion.php';
@@ -45,6 +50,14 @@ switch ($module) {
     case 'serveur':
         require_once 'app/modules/modServeur/mod_serveur.php';
         $mod = new ModServeur();
+        break;
+    case 'detailsCommande':
+        require_once 'app/modules/modDetailsCommande/mod_details_commande.php';
+        $mod = new ModDetailsCommande();
+        break;
+    case 'creationBuvette':
+        require_once 'app/modules/modCreationBuvette/mod_creation_buvette.php';
+        $mod = new ModCreationBuvette();
         break;
 }
 
