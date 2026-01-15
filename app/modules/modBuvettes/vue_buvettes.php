@@ -125,7 +125,7 @@ class VueBuvettes
                         <div class="rounded-4 bg-light mx-auto d-flex align-items-center justify-content-center overflow-hidden border"
                              style="width: 120px; height: 120px;">
                             <?php if(!empty($b['image_buvette'])): ?>
-                                <img src="public/images/<?= htmlspecialchars($b['image_buvette']) ?>" class="w-100 h-100 object-fit-cover" alt="Logo">
+                                <img src="public/img/buvettes/<?= htmlspecialchars($b['image_buvette']) ?>" class="w-100 h-100 object-fit-cover" alt="Logo">
                             <?php else: ?>
                                 <span class="text-muted fw-bold">IMG</span>
                             <?php endif; ?>

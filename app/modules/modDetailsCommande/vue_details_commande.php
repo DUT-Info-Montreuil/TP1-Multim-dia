@@ -118,13 +118,17 @@ class VueDetailsCommande
                                     ?>
                                     <div class="list-group-item bg-transparent border-bottom px-4 py-3 d-flex align-items-center">
                                         <div class="flex-shrink-0 me-3">
-                                            <div class="bg-white rounded-3 border d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                            <div class="bg-white rounded-3 border d-flex align-items-center justify-content-center overflow-hidden"
+                                                 style="width: 60px; height: 60px;">
+
                                                 <?php if (!empty($prod['image_produit'])): ?>
-                                                    <img src="public/images/<?= htmlspecialchars($prod['image_produit']) ?>"
-                                                         class="img-fluid w-100 h-100 object-fit-cover rounded-3">
+                                                    <img src="public/img/produits/<?= htmlspecialchars($prod['image_produit']) ?>"
+                                                         alt="<?= htmlspecialchars($prod['nom_produit']) ?>"
+                                                         class="w-100 h-100 object-fit-cover">
                                                 <?php else: ?>
                                                     <i class="bi bi-cup-hot text-muted"></i>
                                                 <?php endif; ?>
+
                                             </div>
                                         </div>
 

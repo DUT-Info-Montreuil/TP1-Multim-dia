@@ -156,7 +156,6 @@ class VueCompte
                             <h5 class="mb-0 fw-bold"><i class="bi bi-wallet2 me-2"></i>Recharger mon solde</h5>
                         </div>
                         <div class="card-body p-4 bg-light">
-
                             <?php if (empty($mesBuvettes)): ?>
                                 <div class="alert alert-warning rounded-4 mb-0">
                                     <i class="bi bi-exclamation-triangle me-2"></i>
@@ -164,9 +163,7 @@ class VueCompte
                                     <br><a href="index.php?module=buvettes" class="fw-bold text-dark">Voir les buvettes</a>
                                 </div>
                             <?php else: ?>
-
                                 <form action="index.php?module=compte&action=ajouterSolde" method="POST">
-
                                     <div class="mb-4">
                                         <label for="selectBuvette" class="form-label fw-bold text-muted small text-uppercase">1. Choisir la buvette à créditer</label>
                                         <select name="id_buvette" id="selectBuvette" class="form-select form-select-lg rounded-4 border-1 shadow-sm" required>
@@ -216,6 +213,89 @@ class VueCompte
                             <?php endif; ?>
                         </div>
                     </div>
+
+                </div>
+            </div>
+        </div>
+        <?php
+    }
+
+    public function afficherNotifications($notifications, $message = null, $typeMessage = 'success')
+    {
+        ?>
+        <div class="container mt-5 pt-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+
+                    <div class="d-flex justify-content-between align-items-center mb-5">
+                        <h1 class="font-handwritten mb-0">Mes Notifications</h1>
+                        <?php if ($message): ?>
+                            <div class="alert alert-<?= $typeMessage ?> rounded-4 mb-4 shadow-sm">
+                                <i class="bi bi-info-circle-fill me-2"></i> <?= htmlspecialchars($message) ?>
+                            </div>
+                        <?php endif; ?>
+                        <a href="index.php?module=compte&action=profil" class="btn btn-outline-dark rounded-pill">
+                            <i class="bi bi-arrow-left me-2"></i>Retour au profil
+                        </a>
+                    </div>
+
+                    <?php if (empty($notifications)): ?>
+                        <div class="text-center py-5">
+                            <i class="bi bi-bell-slash display-1 text-muted opacity-25 mb-3"></i>
+                            <p class="fs-4 text-muted">Vous n'avez aucune notification de paiement en attente.</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="d-flex flex-column gap-3">
+                            <?php foreach ($notifications as $notif):
+                                $date = new DateTime($notif['date_creation']);
+                                ?>
+                                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                                    <div class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle me-3">
+                                                <i class="bi bi-cash-stack fs-3"></i>
+                                            </div>
+                                            <div>
+                                                <h5 class="fw-bold mb-1">
+                                                    Demande de paiement - <?= htmlspecialchars($notif['nom_buvette']) ?>
+                                                </h5>
+                                                <p class="text-muted small mb-0">
+                                                    <i class="bi bi-calendar-event me-1"></i> <?= $date->format('d/m/Y à H:i') ?>
+                                                    <span class="mx-2">•</span>
+                                                    Commande #<?= $notif['id_commande'] ?>
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div class="text-md-end d-flex flex-column align-items-md-end align-items-start gap-2">
+                                            <span class="fs-4 fw-bold text-dark mb-1">
+                                                <?= number_format($notif['montant'], 2) ?> €
+                                            </span>
+
+                                            <div class="d-flex gap-2">
+                                                <form action="index.php?module=compte&action=refuserPaiement" method="POST">
+                                                    <input type="hidden" name="id_notification" value="<?= $notif['id_notification'] ?>">
+                                                    <button type="submit" class="btn btn-outline-danger rounded-pill px-3 py-1 fw-bold btn-sm">
+                                                        <i class="bi bi-x-lg me-1"></i>Refuser
+                                                    </button>
+                                                </form>
+
+                                                <form action="index.php?module=compte&action=validerPaiement" method="POST">
+                                                    <input type="hidden" name="id_notification" value="<?= $notif['id_notification'] ?>">
+                                                    <button type="submit" class="btn btn-success rounded-pill px-4 py-1 fw-bold btn-sm shadow-sm">
+                                                        <i class="bi bi-check-lg me-1"></i>Payer
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    <div class="card-footer bg-warning bg-opacity-25 border-0 p-1"></div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
 
                 </div>
             </div>

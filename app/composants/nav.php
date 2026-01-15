@@ -65,26 +65,59 @@
                             </a>
                         </div>
                     <?php endif; ?>
-                </div> <div class="dropdown ms-2">
-                    <button class="btn btn-outline-light dropdown-toggle rounded-pill px-3" type="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-person-circle me-2"></i>
-                        <?= htmlspecialchars($_SESSION['user']['prenom']) ?>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow">
-                        <li>
-                            <span class="dropdown-item-text small text-muted">Connecté en tant que :<br><strong><?= htmlspecialchars($_SESSION['user']['prenom']) ?></strong></span>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="index.php?module=compte&action=historique"><i class="bi bi-clock-history me-2"></i>Mes commandes</a></li>
-                        <li><a class="dropdown-item" href="index.php?module=compte&action=profil"><i class="bi bi-person-circle me-2"></i>Mon profil</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item text-danger" href="index.php?module=connexion&action=deconnexion">
-                                <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                    <div class="dropdown ms-2">
+                        <?php
+                        // --- COMPTAGE DES NOTIFICATIONS ---
+                        $nbNotifs = 0;
+                        try {
+                            // On réutilise la connexion existante ou on en crée une
+                            $pdo = class_exists('Connexion') ? Connexion::getBdd() : new PDO('mysql:host=localhost;dbname=alacool', 'root', ''); // Adapte si besoin
+
+                            $sqlNotif = "SELECT COUNT(*) FROM notification_validation WHERE id_utilisateur = ? AND est_vue = 0";
+                            $stmtNotif = $pdo->prepare($sqlNotif);
+                            $stmtNotif->execute([$_SESSION['user']['id_utilisateur']]);
+                            $nbNotifs = $stmtNotif->fetchColumn();
+                        } catch (Exception $e) {
+                            $nbNotifs = 0;
+                        }
+                        ?>
+
+                        <button class="btn btn-outline-light dropdown-toggle rounded-pill px-3 position-relative" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-2"></i>
+                            <?= htmlspecialchars($_SESSION['user']['prenom']) ?>
+
+                            <?php if ($nbNotifs > 0): ?>
+                                <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+                <span class="visually-hidden">New alerts</span>
+            </span>
+                            <?php endif; ?>
+                        </button>
+
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                            <li>
+                                <span class="dropdown-item-text small text-muted">Connecté en tant que :<br><strong><?= htmlspecialchars($_SESSION['user']['prenom']) ?></strong></span>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="index.php?module=compte&action=historique"><i class="bi bi-clock-history me-2"></i>Mes commandes</a></li>
+                            <li><a class="dropdown-item" href="index.php?module=compte&action=profil"><i class="bi bi-person-circle me-2"></i>Mon profil</a></li>
+
+                            <li>
+                                <a class="dropdown-item d-flex justify-content-between align-items-center" href="index.php?module=compte&action=notification">
+                                    <span><i class="bi bi-bell me-2"></i>Mes notifications</span>
+                                    <?php if ($nbNotifs > 0): ?>
+                                        <span class="badge bg-danger rounded-pill"><?= $nbNotifs ?></span>
+                                    <?php endif; ?>
+                                </a>
+                            </li>
+
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="index.php?module=connexion&action=deconnexion">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
 
             <?php else: ?>
                 <ul class="navbar-nav mx-auto"></ul> <a href="index.php?module=connexion" class="btn bg-custom-dark rounded-0 px-4 py-2 text-white">

@@ -72,13 +72,13 @@ class VuePanier
                                 <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-secondary-subtle">
                                     <div class="row g-0 align-items-center">
                                         <div class="col-md-3">
-                                            <div class="bg-danger-subtle h-100 d-flex align-items-center justify-content-center" style="min-height: 140px;">
+                                            <div class="bg-danger-subtle d-flex align-items-center justify-content-center overflow-hidden" style="height: 140px;">
                                                 <?php if(!empty($prod['image_produit'])): ?>
-                                                    <img src="public/images/<?= htmlspecialchars($prod['image_produit']) ?>"
+                                                    <img src="public/img/produits/<?= htmlspecialchars($prod['image_produit']) ?>"
                                                          alt="<?= htmlspecialchars($prod['nom_produit']) ?>"
-                                                         class="img-fluid w-100 h-100 object-fit-cover">
+                                                         class="w-100 h-100 object-fit-cover">
                                                 <?php else: ?>
-                                                    <span>IMG</span>
+                                                    <span class="text-muted fw-bold">IMG</span>
                                                 <?php endif; ?>
                                             </div>
                                         </div>

@@ -24,6 +24,16 @@ class ContCompte
         $idUser = $_SESSION['user']['id_utilisateur'];
 
         switch ($action) {
+            case 'validerPaiement':
+                $this->traiterValidationPaiement($idUser);
+                break;
+
+            case 'refuserPaiement':
+                $this->traiterRefusPaiement($idUser);
+                break;
+            case 'notification':
+                $this->vue->afficherNotifications($this->modele->getNotifications($idUser));
+                break;
             case 'profil':
                 $this->afficherProfil($idUser);
                 break;
@@ -46,7 +56,41 @@ class ContCompte
                 break;
         }
     }
+    private function traiterValidationPaiement($idUser)
+    {
+        if (isset($_POST['id_notification'])) {
+            $idNotif = (int)$_POST['id_notification'];
+            $resultat = $this->modele->payerCommandeNotification($idUser, $idNotif);
+            $notifs = $this->modele->getNotifications($idUser);
 
+            if ($resultat === 1) {
+                $this->vue->afficherNotifications($notifs, "Paiement validé ! Votre commande est maintenant payée.", "success");
+            } elseif ($resultat === 2) {
+                $this->vue->afficherNotifications($notifs, "Solde insuffisant pour cette buvette. Veuillez recharger votre compte.", "danger");
+            } else {
+                $this->vue->afficherNotifications($notifs, "Une erreur est survenue ou la notification n'existe plus.", "danger");
+            }
+        } else {
+            header('Location: index.php?module=compte&action=notification');
+        }
+    }
+
+    private function traiterRefusPaiement($idUser)
+    {
+        if (isset($_POST['id_notification'])) {
+            $idNotif = (int)$_POST['id_notification'];
+            $succes = $this->modele->refuserCommandeNotification($idUser, $idNotif);
+            $notifs = $this->modele->getNotifications($idUser);
+
+            if ($succes) {
+                $this->vue->afficherNotifications($notifs, "La commande a été annulée avec succès.", "warning");
+            } else {
+                $this->vue->afficherNotifications($notifs, "Impossible d'annuler cette commande.", "danger");
+            }
+        } else {
+            header('Location: index.php?module=compte&action=notification');
+        }
+    }
     private function afficherProfil($idUser)
     {
         $mesBuvettes = $this->modele->getBuvettesAdherent($idUser);
@@ -114,12 +158,10 @@ class ContCompte
 
             if ($montant > 0) {
                 $this->modele->ajouterSolde($idUser, $idBuvette, $montant);
-
-                $mesBuvettes = $this->modele->getBuvettesAdherent($idUser);
-
+                $mesBuvettes = $this->modele->getBuvettesAdherent();
                 $this->vue->afficherMonCompte($_SESSION['user'], $mesBuvettes, "Votre compte a été crédité de " . number_format($montant, 2) . " € !", "success");
             } else {
-                $mesBuvettes = $this->modele->getBuvettesAdherent($idUser);
+                $mesBuvettes = $this->modele->getBuvettesAdherent();
                 $this->vue->afficherMonCompte($_SESSION['user'], $mesBuvettes, "Montant invalide.", "danger");
             }
         } else {
@@ -130,11 +172,9 @@ class ContCompte
     private function afficherHistorique($idUser)
     {
         $commandes = $this->modele->getHistorique($idUser);
-
-        foreach ($commandes as &$uneCommande) {
+        foreach ($commandes as $uneCommande) {
             $uneCommande['liste_produits'] = $this->modele->getDetailsCommande($uneCommande['id_commande']);
         }
-        unset($uneCommande);
 
         $this->vue->afficherHistorique($commandes);
     }
