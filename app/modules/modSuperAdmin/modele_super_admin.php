@@ -47,14 +47,14 @@ class ModeleSuperAdmin {
     public function getDemandesCreation() {
         try {
             $stmt = $this->bdd->prepare("
-            SELECT dc.*, 
-                   u.nom as demandeur_nom, 
-                   u.prenom as demandeur_prenom, 
-                   u.email as demandeur_email
-            FROM demande_creation_buvette dc
-            JOIN utilisateur u ON dc.id_utilisateur = u.id_utilisateur
-            WHERE dc.statut = 'En attente'
-            ORDER BY dc.date_demande DESC
+        SELECT dc.*, 
+               u.nom as demandeur_nom, 
+               u.prenom as demandeur_prenom, 
+               u.email as demandeur_email
+        FROM demande_creation_buvette dc
+        JOIN utilisateur u ON dc.id_utilisateur = u.id_utilisateur
+        WHERE dc.statut = 'En attente'
+        ORDER BY dc.date_demande DESC
         ");
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -63,96 +63,7 @@ class ModeleSuperAdmin {
         }
     }
 
-    public function validerDemandeCreation($id_demande) {
-        try {
-            $this->bdd->beginTransaction();
 
-            // Récupérer les informations de la demande
-            $stmt = $this->bdd->prepare("
-            SELECT * FROM demande_creation_buvette 
-            WHERE id_demande = ? AND statut = 'En attente'
-        ");
-            $stmt->execute([$id_demande]);
-            $demande = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if (!$demande) {
-                throw new Exception("Demande introuvable");
-            }
-
-            // Créer la buvette
-            $stmt = $this->bdd->prepare("
-            INSERT INTO une_buvette (nom, description, est_ouverte, archivee) 
-            VALUES (?, ?, 0, NULL)
-        ");
-            $stmt->execute([
-                $demande['nom_buvette'],
-                $demande['description']
-            ]);
-
-            $id_buvette = $this->bdd->lastInsertId();
-
-            // Mettre à jour le statut de la demande
-            $stmt = $this->bdd->prepare("
-            UPDATE demande_creation_buvette 
-            SET statut = 'Validée', 
-                date_validation = NOW() 
-            WHERE id_demande = ?
-        ");
-            $stmt->execute([$id_demande]);
-
-            // Enregistrer dans le journal
-            $this->ajouterJournalActivite(
-                'Validation création buvette',
-                'Demande ID: ' . $id_demande,
-                'Buvette créée: ' . $demande['nom_buvette'] . ' (ID: ' . $id_buvette . ')'
-            );
-
-            $this->bdd->commit();
-            return true;
-
-        } catch (Exception $e) {
-            $this->bdd->rollBack();
-            return false;
-        }
-    }
-
-    public function rejeterDemandeCreation($id_demande, $raison_refus) {
-        try {
-            // Récupérer les informations de la demande
-            $stmt = $this->bdd->prepare("
-            SELECT * FROM demande_creation_buvette 
-            WHERE id_demande = ? AND statut = 'En attente'
-        ");
-            $stmt->execute([$id_demande]);
-            $demande = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if (!$demande) {
-                return false;
-            }
-
-            // Mettre à jour le statut avec la raison du refus
-            $stmt = $this->bdd->prepare("
-            UPDATE demande_creation_buvette 
-            SET statut = 'Refusée', 
-                raison_refus = ?,
-                date_validation = NOW() 
-            WHERE id_demande = ?
-        ");
-            $stmt->execute([$raison_refus, $id_demande]);
-
-            // Enregistrer dans le journal
-            $this->ajouterJournalActivite(
-                'Rejet création buvette',
-                'Demande ID: ' . $id_demande,
-                'Raison: ' . $raison_refus
-            );
-
-            return true;
-
-        } catch (PDOException $e) {
-            return false;
-        }
-    }
 /*    public function getBuvettes() {
         $stmt = $this->bdd->prepare("
             SELECT b.*,
@@ -553,6 +464,109 @@ class ModeleSuperAdmin {
 
         } catch (PDOException $e) {
             return false;
+        }
+    }
+
+    public function validerDemandeCreation($id_demande) {
+        try {
+            // Récupérer les informations de la demande
+            $stmt = $this->bdd->prepare("
+            SELECT nom_buvette, description, id_utilisateur 
+            FROM demande_creation_buvette 
+            WHERE id_demande = ? AND statut = 'En attente'
+        ");
+            $stmt->execute([$id_demande]);
+            $demande = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$demande) {
+                return false;
+            }
+
+            // Commencer une transaction
+            $this->bdd->beginTransaction();
+
+            // 1. Créer la buvette
+            $stmt = $this->bdd->prepare("
+            INSERT INTO une_buvette (nom, description, est_ouverte, archivee) 
+            VALUES (:nom, :description, 0, NULL)
+        ");
+            $stmt->execute([
+                ':nom' => $demande['nom_buvette'],
+                ':description' => $demande['description']
+            ]);
+
+            $id_buvette = $this->bdd->lastInsertId();
+
+            // 2. Attribuer automatiquement le demandeur comme gestionnaire
+            $id_role = $this->getRoleGestionnaireId();
+
+            if ($id_role) {
+                $stmt = $this->bdd->prepare("
+                INSERT INTO affecter (id_role, id_utilisateur, id_buvette, date_debut, date_fin)
+                VALUES (:id_role, :id_utilisateur, :id_buvette, CURDATE(), NULL)
+            ");
+                $stmt->execute([
+                    ':id_role' => $id_role,
+                    ':id_utilisateur' => $demande['id_utilisateur'],
+                    ':id_buvette' => $id_buvette
+                ]);
+            }
+
+            // 3. Mettre à jour le statut de la demande
+            $stmt = $this->bdd->prepare("
+            UPDATE demande_creation_buvette 
+            SET statut = 'Validée', raison_refus = NULL 
+            WHERE id_demande = ?
+        ");
+            $stmt->execute([$id_demande]);
+
+            // Valider la transaction
+            $this->bdd->commit();
+
+            return true;
+
+        } catch (PDOException $e) {
+            // Annuler en cas d'erreur
+            $this->bdd->rollBack();
+            return false;
+        }
+    }
+
+    public function rejeterDemandeCreation($id_demande, $raison_refus) {
+        try {
+            $stmt = $this->bdd->prepare("
+            UPDATE demande_creation_buvette 
+            SET statut = 'Refusée', raison_refus = :raison_refus 
+            WHERE id_demande = :id_demande AND statut = 'En attente'
+        ");
+
+            return $stmt->execute([
+                ':raison_refus' => $raison_refus,
+                ':id_demande' => $id_demande
+            ]);
+
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+// Méthode utilitaire pour obtenir l'ID du rôle gestionnaire
+    private function getRoleGestionnaireId() {
+        try {
+            $stmt = $this->bdd->prepare("SELECT id_role FROM role_utilisateur WHERE nom_role = 'gestionnaire'");
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($result) {
+                return $result['id_role'];
+            } else {
+                // Créer le rôle s'il n'existe pas
+                $stmt = $this->bdd->prepare("INSERT INTO role_utilisateur (nom_role) VALUES ('gestionnaire')");
+                $stmt->execute();
+                return $this->bdd->lastInsertId();
+            }
+        } catch (PDOException $e) {
+            return null;
         }
     }
 }

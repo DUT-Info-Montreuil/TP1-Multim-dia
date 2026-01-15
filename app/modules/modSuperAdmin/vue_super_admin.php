@@ -189,8 +189,8 @@ class VueSuperAdmin {
                                             <?= htmlspecialchars($demande['nom_buvette']) ?>
                                         </h5>
                                         <span class="badge bg-<?php echo $demande['statut'] === 'En attente' ? 'warning' : 'secondary'; ?>">
-                                    <?= htmlspecialchars($demande['statut']) ?>
-                                </span>
+                                        <?= htmlspecialchars($demande['statut']) ?>
+                                    </span>
                                     </div>
                                 </div>
                                 <div class="card-body">
@@ -229,7 +229,7 @@ class VueSuperAdmin {
                                     <div class="card-footer bg-transparent">
                                         <div class="d-flex justify-content-between">
                                             <form method="POST" action="index.php?module=superadmin&action=valider_demande_creation"
-                                                  class="me-2" onsubmit="return confirm('Êtes-vous sûr de vouloir valider cette demande ?');">
+                                                  class="me-2">
                                                 <input type="hidden" name="csrf_token" value="<?= $token ?>">
                                                 <input type="hidden" name="id_demande" value="<?= $demande['id_demande'] ?>">
                                                 <button type="submit" class="btn btn-success">
