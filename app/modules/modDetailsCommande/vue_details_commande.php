@@ -14,10 +14,9 @@ class VueDetailsCommande
 
         $steps = [
             'En attente' => 1,
-            'Payée' => 2,
-            'En cours' => 3,
-            'Prête' => 4,
-            'Terminée' => 4
+            'Préparation' => 2,
+            'Arrivé' => 3,
+            'Parti' => 4
 
         ];
         $currentStep = isset($steps[$statut]) ? $steps[$statut] : 0;

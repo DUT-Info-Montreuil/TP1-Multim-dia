@@ -27,14 +27,11 @@ class VueCompte
                             case 'En attente':
                                 $badgeClass = 'bg-warning text-dark';
                                 break;
-                            case 'Payée':
-                                $badgeClass = 'bg-primary';
-                                break;
-                            case 'En cours':
+                            case 'Préparation':
                                 $badgeClass = 'bg-info text-dark';
                                 break;
-                            case 'Prête':
-                            case 'Terminée':
+                            case 'Arrivé':
+                            case 'Parti':
                                 $badgeClass = 'bg-success';
                                 break;
                             case 'Annulée':
