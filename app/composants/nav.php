@@ -76,6 +76,7 @@
                         </li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="index.php?module=compte&action=historique"><i class="bi bi-clock-history me-2"></i>Mes commandes</a></li>
+                        <li><a class="dropdown-item" href="index.php?module=compte&action=profil"><i class="bi bi-person-circle me-2"></i>Mon profil</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <a class="dropdown-item text-danger" href="index.php?module=connexion&action=deconnexion">

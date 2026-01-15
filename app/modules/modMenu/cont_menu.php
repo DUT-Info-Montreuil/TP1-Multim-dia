@@ -32,12 +32,13 @@ class ContMenu
     public function afficherMenu()
     {
         if (isset($_GET['id_buvette'])) {
-            $_SESSION['id_buvette'] = (int)$_GET['id_buvette'];
+            $_SESSION['id_buvette'] = $_GET['id_buvette'];
         }
 
         if (isset($_SESSION['id_buvette'])) {
             $idBuvette = $_SESSION['id_buvette'];
             $listeProduits = $this->modele->getProduitsParBuvette($idBuvette);
+            $_SESSION['nom_buvette'] = $this->modele->getNomBuvette($idBuvette);
             $this->vue->afficherProduits($listeProduits);
         } else {
             header('Location: index.php?module=buvettes');

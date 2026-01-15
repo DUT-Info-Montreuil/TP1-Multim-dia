@@ -1,10 +1,11 @@
 <?php
 class VueMenu {
+
     public function afficherProduits($produits) {
         ?>
 
         <div class="container mt-5 pt-5">
-            <h2 class="text-center mb-5 font-serif display-4">Carte du jour</h2>
+            <h2 class="text-center mb-5 font-serif display-4">Menu - <?= htmlspecialchars($_SESSION['nom_buvette']) ?></h2>
 
             <div class="row">
                 <?php foreach ($produits as $produit): ?>

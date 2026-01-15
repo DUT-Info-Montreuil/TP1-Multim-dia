@@ -21,22 +21,122 @@ class ContCompte
         }
 
         $action = isset($_GET['action']) ? $_GET['action'] : 'historique';
+        $idUser = $_SESSION['user']['id_utilisateur'];
 
         switch ($action) {
+            case 'profil':
+                $this->afficherProfil($idUser);
+                break;
+
+            case 'modifierEmail':
+                $this->traiterModificationEmail($idUser);
+                break;
+
+            case 'modifierMdp':
+                $this->traiterModificationMdp($idUser);
+                break;
+
+            case 'ajouterSolde':
+                $this->traiterAjoutSolde($idUser);
+                break;
 
             case 'historique':
             default:
-                $idUser = $_SESSION['user']['id_utilisateur'];
-
-                $commandes = $this->modele->getHistorique($idUser);
-
-                foreach ($commandes as &$uneCommande) {
-                    $uneCommande['liste_produits'] = $this->modele->getDetailsCommande($uneCommande['id_commande']);
-                }
-                unset($uneCommande);
-
-                $this->vue->afficherHistorique($commandes);
+                $this->afficherHistorique($idUser);
                 break;
         }
     }
+
+    private function afficherProfil($idUser)
+    {
+        $mesBuvettes = $this->modele->getBuvettesAdherent($idUser);
+        $this->vue->afficherMonCompte($_SESSION['user'], $mesBuvettes);
+    }
+
+    private function traiterModificationEmail($idUser)
+    {
+        $mesBuvettes = $this->modele->getBuvettesAdherent($idUser);
+
+        if (isset($_POST['new_email']) && !empty($_POST['new_email'])) {
+            $newEmail = htmlspecialchars($_POST['new_email']);
+
+            if (filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+                $succes = $this->modele->updateEmail($idUser, $newEmail);
+
+                if ($succes) {
+                    $_SESSION['user']['email'] = $newEmail;
+                    $this->vue->afficherMonCompte($_SESSION['user'], $mesBuvettes, "Email mis à jour avec succès !", "success");
+                } else {
+                    $this->vue->afficherMonCompte($_SESSION['user'], $mesBuvettes, "Cet email est déjà utilisé ou une erreur est survenue.", "danger");
+                }
+            } else {
+                $this->vue->afficherMonCompte($_SESSION['user'], $mesBuvettes, "Format d'email invalide.", "warning");
+            }
+        } else {
+            $this->afficherProfil($idUser);
+        }
+    }
+
+    private function traiterModificationMdp($idUser)
+    {
+        $mesBuvettes = $this->modele->getBuvettesAdherent($idUser);
+
+        if (isset($_POST['old_mdp'], $_POST['new_mdp'], $_POST['confirm_mdp'])) {
+            $oldMdp = $_POST['old_mdp'];
+            $newMdp = $_POST['new_mdp'];
+            $confirmMdp = $_POST['confirm_mdp'];
+
+            if ($newMdp !== $confirmMdp) {
+                $this->vue->afficherMonCompte($_SESSION['user'], $mesBuvettes, "Les nouveaux mots de passe ne correspondent pas.", "danger");
+                return;
+            }
+
+            $hashActuel = $this->modele->getHashMdp($idUser);
+
+            if (password_verify($oldMdp, $hashActuel)) {
+                $newHash = password_hash($newMdp, PASSWORD_DEFAULT);
+                $this->modele->updateMdp($idUser, $newHash);
+
+                $this->vue->afficherMonCompte($_SESSION['user'], $mesBuvettes, "Mot de passe modifié avec succès !", "success");
+            } else {
+                $this->vue->afficherMonCompte($_SESSION['user'], $mesBuvettes, "L'ancien mot de passe est incorrect.", "danger");
+            }
+        } else {
+            $this->afficherProfil($idUser);
+        }
+    }
+
+    private function traiterAjoutSolde($idUser)
+    {
+        if (isset($_POST['id_buvette'], $_POST['montant'])) {
+            $idBuvette = (int) $_POST['id_buvette'];
+            $montant = (float) $_POST['montant'];
+
+            if ($montant > 0) {
+                $this->modele->ajouterSolde($idUser, $idBuvette, $montant);
+
+                $mesBuvettes = $this->modele->getBuvettesAdherent($idUser);
+
+                $this->vue->afficherMonCompte($_SESSION['user'], $mesBuvettes, "Votre compte a été crédité de " . number_format($montant, 2) . " € !", "success");
+            } else {
+                $mesBuvettes = $this->modele->getBuvettesAdherent($idUser);
+                $this->vue->afficherMonCompte($_SESSION['user'], $mesBuvettes, "Montant invalide.", "danger");
+            }
+        } else {
+            $this->afficherProfil($idUser);
+        }
+    }
+
+    private function afficherHistorique($idUser)
+    {
+        $commandes = $this->modele->getHistorique($idUser);
+
+        foreach ($commandes as &$uneCommande) {
+            $uneCommande['liste_produits'] = $this->modele->getDetailsCommande($uneCommande['id_commande']);
+        }
+        unset($uneCommande);
+
+        $this->vue->afficherHistorique($commandes);
+    }
 }
+?>

@@ -22,8 +22,7 @@ class VueBuvettes
             }
         }
         ?>
-        <div class="container mt-5 pt-5">
-            <h1 class="mb-5 text-center font-handwritten">Nos Buvettes</h1>
+        <div class="container mt-5 pt-5 pb-5"> <h1 class="mb-5 text-center font-handwritten">Nos Buvettes</h1>
 
             <div class="mb-5 px-md-5">
                 <div class="input-group shadow-sm rounded-pill overflow-hidden bg-white p-1 border">
@@ -61,6 +60,22 @@ class VueBuvettes
                 </div>
 
             </div>
+
+            <div class="mt-5 text-center">
+                <div class="p-5 rounded-5 bg-dark text-white shadow position-relative overflow-hidden">
+                    <i class="bi bi-shop position-absolute text-white opacity-25" style="font-size: 10rem; right: -2rem; top: -2rem;"></i>
+
+                    <div class="position-relative z-1">
+                        <h3 class="fw-bold font-serif mb-3">Vous ne trouvez pas votre bonheur ?</h3>
+                        <p class="mb-4 text-white-50 fs-5">Lancez votre propre buvette et rejoignez l'aventure !</p>
+
+                        <a href="index.php?module=creationBuvette" class="btn btn-warning rounded-pill px-5 py-3 fw-bold fs-5 shadow-lg transform-hover">
+                            <i class="bi bi-plus-lg me-2"></i>Proposer ma buvette
+                        </a>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <script>
@@ -73,10 +88,14 @@ class VueBuvettes
                 });
             }
         </script>
+
+        <style>
+            .transform-hover { transition: transform 0.2s; }
+            .transform-hover:hover { transform: scale(1.05); }
+        </style>
         <?php
     }
 
-    // Ajout de $idsStaff dans les arguments
     private function renderListe($buvettes, $idsMembres, $idsEnAttente, $idsStaff, $estMembreSection) {
         if (empty($buvettes)) {
             echo "<div class='text-center py-4 text-muted'>Aucune buvette dans cette section.</div>";
@@ -88,7 +107,7 @@ class VueBuvettes
         foreach ($buvettes as $b) {
             $id = $b['id_buvette'];
             $estEnAttente = in_array($id, $idsEnAttente);
-            $estStaff = in_array($id, $idsStaff); // Vérification du statut Staff
+            $estStaff = in_array($id, $idsStaff);
             $estActuelle = ($id == $currentBuvetteId);
 
             // Gestion de la couleur de bordure
@@ -96,9 +115,7 @@ class VueBuvettes
             if ($estActuelle) {
                 $borderClass = 'border-success';
             } elseif ($estStaff) {
-                $borderClass = 'border-warning'; // Jaune pour le staff
-            } elseif ($estMembreSection) {
-                // $borderClass = 'border-dark'; // Optionnel pour les membres simples
+                $borderClass = 'border-warning';
             }
             ?>
             <div class="buvette-card mb-4" data-name="<?= htmlspecialchars($b['nom']) ?>">
@@ -175,8 +192,7 @@ class VueBuvettes
                             <?php else: ?>
                                 <?php if ($b['est_ouverte']): ?>
                                     <a href="index.php?module=buvettes&action=adherer&id_buvette=<?= $id ?>"
-                                       class="btn btn-outline-dark rounded-pill px-4 py-2 shadow-sm"
-                                       onclick="return confirm('Rejoindre la file d\'attente de cette buvette ?');">
+                                       class="btn btn-outline-dark rounded-pill px-4 py-2 shadow-sm">
                                         <i class="bi bi-plus-circle me-2"></i>Adhérer
                                     </a>
                                 <?php else: ?>

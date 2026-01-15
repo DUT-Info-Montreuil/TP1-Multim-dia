@@ -42,6 +42,14 @@ switch ($module) {
         require_once 'app/modules/modServeur/mod_serveur.php';
         $mod = new ModServeur();
         break;
+    case 'detailsCommande':
+        require_once 'app/modules/modDetailsCommande/mod_details_commande.php';
+        $mod = new ModDetailsCommande();
+        break;
+        case 'creationBuvette':
+        require_once 'app/modules/modCreationBuvette/mod_creation_buvette.php';
+        $mod = new ModCreationBuvette();
+        break;
 }
 
 $tampon = ob_get_clean();

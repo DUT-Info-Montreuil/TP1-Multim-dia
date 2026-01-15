@@ -2,45 +2,46 @@
 require_once __DIR__ . '/../../../connexion.php';
 
 class ModelePanier {
+    private $pdo;
+
+    public function __construct() {
+        $this->pdo = Connexion::getBdd();
+    }
 
     public function getCommandeEnCours($idUser, $idBuvette) {
-        $pdo = Connexion::getBdd();
-        $sql = "SELECT id_commande FROM commande 
+        $stmt = $this->pdo->prepare("SELECT id_commande FROM commande 
                 WHERE id_utilisateur = ? 
                 AND id_buvette = ? 
                 AND statut = 'En cours' 
-                AND est_paye = 0";
-        $stmt = $pdo->prepare($sql);
+                AND est_paye = 0");
         $stmt->execute([$idUser, $idBuvette]);
         $res = $stmt->fetch(PDO::FETCH_ASSOC);
         return $res ? $res['id_commande'] : null;
     }
 
     public function creerCommande($idUser, $idBuvette) {
-        $pdo = Connexion::getBdd();
-        $stmt = $pdo->prepare("INSERT INTO commande (statut, date_commande, prix_total, id_utilisateur, id_buvette, est_paye) VALUES ('En cours', NOW(), 0, ?, ?, 0)");
+        $stmt = $this->pdo->prepare("INSERT INTO commande (statut, date_commande, prix_total, id_utilisateur, id_buvette, est_paye) VALUES ('En cours', NOW(), 0, ?, ?, 0)");
         $stmt->execute([$idUser, $idBuvette]);
-        return $pdo->lastInsertId();
+        return $this->pdo->lastInsertId();
     }
 
     public function ajouterArticle($idCommande, $idProduit) {
-        $pdo = Connexion::getBdd();
 
-        $stmtPrix = $pdo->prepare("SELECT prix_produit FROM produit WHERE id_produit = ?");
+        $stmtPrix = $this->pdo->prepare("SELECT prix_produit FROM produit WHERE id_produit = ?");
         $stmtPrix->execute([$idProduit]);
         $produit = $stmtPrix->fetch(PDO::FETCH_ASSOC);
         if (!$produit) return;
         $prix = $produit['prix_produit'];
 
-        $stmtVerif = $pdo->prepare("SELECT quantite FROM ligne_commande WHERE id_commande = ? AND id_produit = ?");
+        $stmtVerif = $this->pdo->prepare("SELECT quantite FROM ligne_commande WHERE id_commande = ? AND id_produit = ?");
         $stmtVerif->execute([$idCommande, $idProduit]);
         $ligne = $stmtVerif->fetch(PDO::FETCH_ASSOC);
 
         if ($ligne) {
-            $stmtUpdate = $pdo->prepare("UPDATE ligne_commande SET quantite = quantite + 1 WHERE id_commande = ? AND id_produit = ?");
+            $stmtUpdate = $this->pdo->prepare("UPDATE ligne_commande SET quantite = quantite + 1 WHERE id_commande = ? AND id_produit = ?");
             $stmtUpdate->execute([$idCommande, $idProduit]);
         } else {
-            $stmtInsert = $pdo->prepare("INSERT INTO ligne_commande (id_commande, id_produit, quantite, options, prix_unitaire_moment_vente) VALUES (?, ?, 1, NULL, ?)");
+            $stmtInsert = $this->pdo->prepare("INSERT INTO ligne_commande (id_commande, id_produit, quantite, options, prix_unitaire_moment_vente) VALUES (?, ?, 1, NULL, ?)");
             $stmtInsert->execute([$idCommande, $idProduit, $prix]);
         }
 
@@ -48,52 +49,45 @@ class ModelePanier {
     }
 
     private function majTotalCommande($idCommande) {
-        $pdo = Connexion::getBdd();
-        $sql = "UPDATE commande SET prix_total = (
+
+        $stmt = $this->pdo->prepare("UPDATE commande SET prix_total = (
                     SELECT COALESCE(SUM(quantite * prix_unitaire_moment_vente), 0) 
                     FROM ligne_commande WHERE id_commande = ?
-                ) WHERE id_commande = ?";
-        $stmt = $pdo->prepare($sql);
+                ) WHERE id_commande = ?");
         $stmt->execute([$idCommande, $idCommande]);
     }
 
     public function getProduitsCommande($idCommande) {
-        $pdo = Connexion::getBdd();
-        $sql = "SELECT p.*, lc.quantite, lc.prix_unitaire_moment_vente 
+        $stmt = $this->pdo->prepare("SELECT p.*, lc.quantite, lc.prix_unitaire_moment_vente 
                 FROM ligne_commande lc
                 JOIN produit p ON lc.id_produit = p.id_produit
-                WHERE lc.id_commande = ?";
-        $stmt = $pdo->prepare($sql);
+                WHERE lc.id_commande = ?");
         $stmt->execute([$idCommande]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function getTotalCommande($idCommande) {
-        $pdo = Connexion::getBdd();
-        $stmt = $pdo->prepare("SELECT prix_total FROM commande WHERE id_commande = ?");
+        $stmt = $this->pdo->prepare("SELECT prix_total FROM commande WHERE id_commande = ?");
         $stmt->execute([$idCommande]);
         $res = $stmt->fetch(PDO::FETCH_ASSOC);
         return $res ? $res['prix_total'] : 0;
     }
 
     public function supprimerProduit($idCommande, $idProduit) {
-        $pdo = Connexion::getBdd();
-        $stmt = $pdo->prepare("DELETE FROM ligne_commande WHERE id_commande = ? AND id_produit = ?");
+        $stmt = $this->pdo->prepare("DELETE FROM ligne_commande WHERE id_commande = ? AND id_produit = ?");
         $stmt->execute([$idCommande, $idProduit]);
 
         $this->majTotalCommande($idCommande);
     }
 
     public function diminuerQuantite($idCommande, $idProduit) {
-        $pdo = Connexion::getBdd();
-
-        $stmt = $pdo->prepare("SELECT quantite FROM ligne_commande WHERE id_commande = ? AND id_produit = ?");
+        $stmt = $this->pdo->prepare("SELECT quantite FROM ligne_commande WHERE id_commande = ? AND id_produit = ?");
         $stmt->execute([$idCommande, $idProduit]);
         $ligne = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($ligne) {
             if ($ligne['quantite'] > 1) {
-                $update = $pdo->prepare("UPDATE ligne_commande SET quantite = quantite - 1 WHERE id_commande = ? AND id_produit = ?");
+                $update = $this->pdo->prepare("UPDATE ligne_commande SET quantite = quantite - 1 WHERE id_commande = ? AND id_produit = ?");
                 $update->execute([$idCommande, $idProduit]);
             } else {
                 $this->supprimerProduit($idCommande, $idProduit);
@@ -104,49 +98,28 @@ class ModelePanier {
         }
     }
 
-    public function getSoldeUtilisateur($idUser) {
-        $pdo = Connexion::getBdd();
-        $stmt = $pdo->prepare("SELECT solde FROM utilisateur WHERE id_utilisateur = ?");
-        $stmt->execute([$idUser]);
+    public function getSoldeUtilisateur($idUser, $idBuvette) {
+        $stmt = $this->pdo->prepare("SELECT solde FROM solde WHERE id_utilisateur = ? AND id_buvette = ?");
+        $stmt->execute([$idUser, $idBuvette]);
         $res = $stmt->fetch(PDO::FETCH_ASSOC);
         return $res ? $res['solde'] : 0;
     }
 
-    public function payerCommande($idUser, $idCommande, $total) {
-        $pdo = Connexion::getBdd();
-        try {
-            $pdo->beginTransaction();
+    public function validerCommande($idUser, $idCommande, $total) {;
 
-            $stmtDebit = $pdo->prepare("UPDATE utilisateur SET solde = solde - ? WHERE id_utilisateur = ?");
-            $stmtDebit->execute([$total, $idUser]);
-
-            $sql = "UPDATE commande 
-                SET est_paye = 1, 
-                    statut = 'En cours', 
+        $stmt = $this->pdo->prepare("UPDATE commande 
+                SET statut = 'En attente', 
+                    est_paye = 0, 
                     date_commande = NOW(), 
                     prix_total = ? 
-                WHERE id_commande = ?";
-
-            $stmtUpdate = $pdo->prepare($sql);
-            $stmtUpdate->execute([$total, $idCommande]);
-
-            if(isset($_SESSION['user'])) {
-                $_SESSION['user']['solde'] -= $total;
-            }
-
-            $pdo->commit();
-        } catch (Exception $e) {
-            $pdo->rollBack();
-            throw $e;
-        }
+                WHERE id_commande = ? AND id_utilisateur = ?");
+        return $stmt->execute([$total, $idCommande, $idUser]);
     }
 
-    public function aDesCommandesHistorique($idUser) {
-        $pdo = Connexion::getBdd();
-        $sql = "SELECT COUNT(*) FROM commande 
+    public function aDesCommandesHistorique($idUser) {;
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM commande 
                 WHERE id_utilisateur = ? 
-                AND (statut != 'En cours' OR est_paye = 1)";
-        $stmt = $pdo->prepare($sql);
+                AND (statut != 'En cours' OR est_paye = 1)");
         $stmt->execute([$idUser]);
 
         return $stmt->fetchColumn() > 0;

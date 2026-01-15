@@ -85,20 +85,20 @@ class ContPanier
 
                 $this->vue->afficherPanier($produits, $total, $aDesHistoriques);
                 break;
-            case 'payer':
+            case 'valider':
                 $idCommande = $this->modele->getCommandeEnCours($idUser, $idBuvette);
 
                 if ($idCommande) {
                     $total = $this->modele->getTotalCommande($idCommande);
-                    $solde = $this->modele->getSoldeUtilisateur($idUser);
+                    $solde = $this->modele->getSoldeUtilisateur($idUser, $idBuvette);
 
                     if ($solde < $total) {
                         $_SESSION['modal_error'] = "Votre solde est insuffisant pour valider cette commande. Il vous manque " . number_format($total - $solde, 2) . " €.";
                         header('Location: index.php?module=panier&action=afficher');
                     } else {
-                        $this->modele->payerCommande($idUser, $idCommande, $total);
+                        $this->modele->validerCommande($idUser, $idCommande, $total);
                         $_SESSION['flash'] = "Commande payée et validée avec succès !";
-                        header('Location: index.php?module=menu&action=afficher');
+                        header('Location: index.php?module=detailsCommande&action=afficher&id_commande=' . $idCommande);
                     }
                 } else {
                     header('Location: index.php?module=panier&action=afficher');

@@ -39,7 +39,7 @@ class VuePanier
 
     <?php endif; ?>
         <div class="container mt-5 pt-5">
-            <h1 class="mb-4 font-handwritten">Votre Panier</h1>
+            <h1 class="mb-4 font-handwritten">Votre Panier - Buvette : <?= htmlspecialchars($_SESSION['nom_buvette']) ?></h1>
 
             <?php if (empty($produits)): ?>
                 <div class="alert alert-info text-center py-5 rounded-4">
@@ -143,7 +143,7 @@ class VuePanier
                                 <span class="fs-4 fw-bold text-success"><?= number_format($totalGlobal, 2) ?> €</span>
                             </div>
 
-                            <a href="index.php?module=panier&action=payer" class="btn btn-success w-100 rounded-pill py-2 fw-bold shadow-sm mb-3">
+                            <a href="index.php?module=panier&action=valider" class="btn btn-success w-100 rounded-pill py-2 fw-bold shadow-sm mb-3">
                                 Valider ma commande
                             </a>
 
