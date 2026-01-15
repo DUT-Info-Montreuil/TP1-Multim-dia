@@ -20,9 +20,6 @@ class ContMenu
 
         switch ($action) {
             case 'afficher':
-                $this->afficherMenu();
-                break;
-
             default:
                 $this->afficherMenu();
                 break;
@@ -32,19 +29,23 @@ class ContMenu
     public function afficherMenu()
     {
         if (isset($_GET['id_buvette'])) {
-            $_SESSION['id_buvette'] = (int)$_GET['id_buvette'];
+            $_SESSION['id_buvette'] = $_GET['id_buvette'];
         }
 
         if (isset($_SESSION['id_buvette'])) {
             $idBuvette = $_SESSION['id_buvette'];
-            $listeProduits = $this->modele->getProduitsParBuvette($idBuvette);
-            $this->vue->afficherProduits($listeProduits);
+
+            $filtre = isset($_GET['filtre']) ? $_GET['filtre'] : 'all';
+
+            $listeProduits = $this->modele->getProduitsParBuvette($idBuvette, $filtre);
+
+            $_SESSION['nom_buvette'] = $this->modele->getNomBuvette($idBuvette);
+
+            $this->vue->afficherProduits($listeProduits, $filtre);
         } else {
             header('Location: index.php?module=buvettes');
             exit();
         }
     }
 }
-
-
-
+?>
