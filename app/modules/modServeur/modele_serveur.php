@@ -53,7 +53,8 @@ class ModeleServeur {
 
     public function rechercherUtilisateur($query) {
         $bdd = Connexion::getBdd();
-        $sql = "SELECT id_utilisateur, nom, prenom, solde FROM utilisateur 
+        $sql = "SELECT u.id_utilisateur, u.nom, u.prenom, s.solde FROM utilisateur u
+                LEFT JOIN solde s ON u.id_utilisateur = s.id_utilisateur
                 WHERE nom LIKE ? OR prenom LIKE ? OR email LIKE ? LIMIT 10";
         $stmt = $bdd->prepare($sql);
         $q = "%$query%";

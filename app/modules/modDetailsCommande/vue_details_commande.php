@@ -10,6 +10,7 @@ class VueDetailsCommande
         $date = new DateTime($commande['date_commande']);
         $produits = $commande['produits'];
         $total = $commande['prix_total'];
+        $est_paye = $commande['est_paye'];
 
         $steps = [
             'En attente' => 1,
@@ -150,9 +151,13 @@ class VueDetailsCommande
                                 <span class="fs-5 text-muted">Total à payer</span>
                                 <span class="fs-3 fw-bold text-success"><?= number_format($total, 2) ?> €</span>
                             </div>
-                            <?php if($statut === 'En attente' || $statut === 'En cours'): ?>
+                            <?php if($est_paye == 0): ?>
                                 <div class="alert alert-light border text-center mt-3 mb-0 text-muted small">
                                     <i class="bi bi-info-circle me-1"></i> Le paiement s'effectuera lors du retrait au comptoir.
+                                </div>
+                            <?php else: ?>
+                                <div class="alert alert-success border text-center mt-3 mb-0 text-success small">
+                                    <i class="bi bi-check-circle me-1"></i> Paiement effectué avec succès.
                                 </div>
                             <?php endif; ?>
                         </div>

@@ -41,7 +41,7 @@ class ModeleCompte
             $stmtDebit = $this->pdo->prepare($sqlDebit);
             $stmtDebit->execute([$montantAPayer, $idUser, $idBuvette]);
 
-            $sqlUpdateCmd = "UPDATE commande SET est_paye = 1 WHERE id_commande = ?";
+            $sqlUpdateCmd = "UPDATE commande SET statut = 'En attente', est_paye = 1 WHERE id_commande = ?";
             $stmtCmd = $this->pdo->prepare($sqlUpdateCmd);
             $stmtCmd->execute([$idCommande]);
 
