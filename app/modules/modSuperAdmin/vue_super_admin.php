@@ -123,11 +123,179 @@ class VueSuperAdmin {
                         </div>
                     </div>
                 </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-file-alt fa-3x text-primary mb-3"></i>
+                            <h5 class="card-title">Demandes de création</h5>
+                            <p class="card-text">Valider ou rejeter les demandes de nouvelles buvettes</p>
+                            <a href="index.php?module=superadmin&action=gestion_demandes_creation" class="btn btn-primary">
+                                Gérer les demandes
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <?php
     }
 
+    public function afficherGestionDemandesCreation($demandes, $message = null) {
+        $token = isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '';
+        ?>
+        <div class="container mt-5 pt-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="font-handwritten">Demandes de création de buvettes</h1>
+                <a href="index.php?module=superadmin" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Retour
+                </a>
+            </div>
+
+            <?php if ($message): ?>
+                <div class="alert alert-success alert-dismissible fade show">
+                    <?php
+                    switch($message) {
+                        case 'validee':
+                            echo "Demande validée avec succès !";
+                            break;
+                        case 'rejetee':
+                            echo "Demande rejetée avec succès !";
+                            break;
+                        case 'error':
+                            echo "Une erreur est survenue lors du traitement de la demande.";
+                            break;
+                    }
+                    ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <?php endif; ?>
+
+            <?php if (empty($demandes)): ?>
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h4>Aucune demande en attente</h4>
+                        <p class="text-muted">Toutes les demandes ont été traitées.</p>
+                    </div>
+                </div>
+            <?php else: ?>
+                <div class="row">
+                    <?php foreach ($demandes as $demande): ?>
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100 shadow-sm border-<?php echo $demande['statut'] === 'En attente' ? 'warning' : 'secondary'; ?>">
+                                <div class="card-header bg-<?php echo $demande['statut'] === 'En attente' ? 'warning' : 'light'; ?>">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="card-title mb-0">
+                                            <?= htmlspecialchars($demande['nom_buvette']) ?>
+                                        </h5>
+                                        <span class="badge bg-<?php echo $demande['statut'] === 'En attente' ? 'warning' : 'secondary'; ?>">
+                                        <?= htmlspecialchars($demande['statut']) ?>
+                                    </span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <h6 class="text-muted">Description :</h6>
+                                        <p><?= nl2br(htmlspecialchars($demande['description'])) ?></p>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <h6 class="text-muted">Demandeur :</h6>
+                                            <p class="mb-0">
+                                                <i class="fas fa-user me-1"></i>
+                                                <?= htmlspecialchars($demande['demandeur_nom'] . ' ' . $demande['demandeur_prenom']) ?>
+                                            </p>
+                                            <small class="text-muted"><?= htmlspecialchars($demande['demandeur_email']) ?></small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="text-muted">Date de demande :</h6>
+                                            <p class="mb-0">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                <?= date('d/m/Y H:i', strtotime($demande['date_demande'])) ?>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <?php if ($demande['raison_refus']): ?>
+                                        <div class="alert alert-danger mt-3">
+                                            <h6><i class="fas fa-ban me-1"></i> Raison du refus :</h6>
+                                            <p class="mb-0"><?= nl2br(htmlspecialchars($demande['raison_refus'])) ?></p>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <?php if ($demande['statut'] === 'En attente'): ?>
+                                    <div class="card-footer bg-transparent">
+                                        <div class="d-flex justify-content-between">
+                                            <form method="POST" action="index.php?module=superadmin&action=valider_demande_creation"
+                                                  class="me-2">
+                                                <input type="hidden" name="csrf_token" value="<?= $token ?>">
+                                                <input type="hidden" name="id_demande" value="<?= $demande['id_demande'] ?>">
+                                                <button type="submit" class="btn btn-success">
+                                                    <i class="fas fa-check me-1"></i> Valider
+                                                </button>
+                                            </form>
+
+                                            <button type="button" class="btn btn-danger"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#rejeterModal"
+                                                    data-id="<?= $demande['id_demande'] ?>"
+                                                    data-nom="<?= htmlspecialchars($demande['nom_buvette']) ?>">
+                                                <i class="fas fa-times me-1"></i> Rejeter
+                                            </button>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Modal pour rejeter une demande -->
+        <div class="modal fade" id="rejeterModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="POST" action="index.php?module=superadmin&action=rejeter_demande_creation">
+                        <input type="hidden" name="csrf_token" value="<?= $token ?>">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Rejeter la demande</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" name="id_demande" id="rejeter_id_demande">
+
+                            <p>Vous êtes sur le point de rejeter la demande pour :</p>
+                            <p class="fw-bold" id="rejeter_nom_buvette"></p>
+
+                            <div class="mb-3">
+                                <label for="raison_refus" class="form-label">Raison du refus *</label>
+                                <textarea class="form-control" name="raison_refus" id="raison_refus"
+                                          rows="4" placeholder="Expliquez pourquoi vous rejetez cette demande..."
+                                          required></textarea>
+                                <div class="form-text">Cette raison sera communiquée au demandeur.</div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <button type="submit" class="btn btn-danger">Confirmer le rejet</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.getElementById('rejeterModal').addEventListener('show.bs.modal', function (event) {
+                let button = event.relatedTarget;
+                document.getElementById('rejeter_id_demande').value = button.getAttribute('data-id');
+                document.getElementById('rejeter_nom_buvette').textContent = button.getAttribute('data-nom');
+            });
+        </script>
+        <?php
+    }
     public function afficherGestionBuvettes($buvettes, $token, $message = null) {
         ?>
         <div class="container mt-5 pt-5">
