@@ -7,9 +7,9 @@ class ModeleGestionnaire {
     public function getBuvettesAutorisees($id_utilisateur) {
         $bdd = Connexion::getBdd();
         $req = $bdd->prepare("
-            SELECT b.* FROM une_buvette b
-            INNER JOIN affecter a ON b.id_buvette = a.id_buvette
-            INNER JOIN role_utilisateur r ON a.id_role = r.id_role
+            SELECT b.* FROM Une_Buvette b
+            INNER JOIN Affecter a ON b.id_buvette = a.id_buvette
+            INNER JOIN Role_Utilisateur r ON a.id_role = r.id_role
             WHERE a.id_utilisateur = ? 
             AND r.nom_role = 'Gestionnaire'
             AND (a.date_fin IS NULL OR a.date_fin >= CURDATE())
@@ -437,5 +437,147 @@ class ModeleGestionnaire {
         ");
         $req->execute([$id_buvette, $date_debut]);
         return $req->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // ==================== FIDÉLITÉ ====================
+    public function getUtilisateurById($id_utilisateur) {
+        $bdd = Connexion::getBdd();
+        $req = $bdd->prepare("SELECT * FROM utilisateur WHERE id_utilisateur = ?");
+        $req->execute([$id_utilisateur]);
+        return $req->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function getPointsFidelite($id_utilisateur, $id_buvette) {
+        $bdd = Connexion::getBdd();
+        $req = $bdd->prepare("SELECT * FROM points_fidelite WHERE id_utilisateur = ? AND id_buvette = ?");
+        $req->execute([$id_utilisateur, $id_buvette]);
+        $points = $req->fetch(PDO::FETCH_ASSOC);
+
+        if (!$points) {
+            $this->initialiserPointsFidelite($id_utilisateur, $id_buvette);
+            return $this->getPointsFidelite($id_utilisateur, $id_buvette);
+        }
+
+        return $points;
+    }
+
+    public function initialiserPointsFidelite($id_utilisateur, $id_buvette) {
+        $bdd = Connexion::getBdd();
+        $req = $bdd->prepare("
+            INSERT IGNORE INTO points_fidelite (id_utilisateur, id_buvette, points_actuels, points_total_cumules, palier) 
+            VALUES (?, ?, 0, 0, 'Bronze')
+        ");
+        return $req->execute([$id_utilisateur, $id_buvette]);
+    }
+
+    public function ajouterPoints($id_utilisateur, $id_buvette, $points, $description, $id_commande = null) {
+        $bdd = Connexion::getBdd();
+        try {
+            $bdd->beginTransaction();
+
+            $req = $bdd->prepare("
+                UPDATE points_fidelite 
+                SET points_actuels = points_actuels + ?, 
+                    points_total_cumules = points_total_cumules + ?
+                WHERE id_utilisateur = ? AND id_buvette = ?
+            ");
+            $req->execute([$points, $points, $id_utilisateur, $id_buvette]);
+
+            $reqHist = $bdd->prepare("
+                INSERT INTO historique_points (id_utilisateur, id_buvette, type_mouvement, points, description, id_commande) 
+                VALUES (?, ?, 'Gain', ?, ?, ?)
+            ");
+            $reqHist->execute([$id_utilisateur, $id_buvette, $points, $description, $id_commande]);
+
+            $this->mettreAJourPalier($id_utilisateur, $id_buvette);
+
+            $bdd->commit();
+            return true;
+        } catch (Exception $e) {
+            $bdd->rollBack();
+            throw $e;
+        }
+    }
+
+    public function utiliserPoints($id_utilisateur, $id_buvette, $points, $description, $id_commande = null) {
+        $bdd = Connexion::getBdd();
+        try {
+            $bdd->beginTransaction();
+
+            $pointsActuels = $this->getPointsFidelite($id_utilisateur, $id_buvette);
+            if ($pointsActuels['points_actuels'] < $points) {
+                throw new Exception("Points insuffisants");
+            }
+
+            $req = $bdd->prepare("
+                UPDATE points_fidelite 
+                SET points_actuels = points_actuels - ?
+                WHERE id_utilisateur = ? AND id_buvette = ?
+            ");
+            $req->execute([$points, $id_utilisateur, $id_buvette]);
+
+            $reqHist = $bdd->prepare("
+                INSERT INTO historique_points (id_utilisateur, id_buvette, type_mouvement, points, description, id_commande) 
+                VALUES (?, ?, 'Utilisation', ?, ?, ?)
+            ");
+            $reqHist->execute([$id_utilisateur, $id_buvette, -$points, $description, $id_commande]);
+
+            $bdd->commit();
+            return true;
+        } catch (Exception $e) {
+            $bdd->rollBack();
+            throw $e;
+        }
+    }
+
+    public function mettreAJourPalier($id_utilisateur, $id_buvette) {
+        $bdd = Connexion::getBdd();
+        $points = $this->getPointsFidelite($id_utilisateur, $id_buvette);
+        $total = $points['points_total_cumules'];
+
+        $nouveau_palier = 'Bronze';
+        if ($total >= 1500) {
+            $nouveau_palier = 'Or';
+        } elseif ($total >= 500) {
+            $nouveau_palier = 'Argent';
+        }
+
+        $req = $bdd->prepare("UPDATE points_fidelite SET palier = ? WHERE id_utilisateur = ? AND id_buvette = ?");
+        return $req->execute([$nouveau_palier, $id_utilisateur, $id_buvette]);
+    }
+
+    public function getHistoriquePoints($id_utilisateur, $id_buvette, $limit = 50) {
+        $bdd = Connexion::getBdd();
+        $limit = (int)$limit;
+        $req = $bdd->prepare("
+            SELECT * FROM historique_points 
+            WHERE id_utilisateur = ? AND id_buvette = ? 
+            ORDER BY date_mouvement DESC 
+            LIMIT $limit
+        ");
+        $req->execute([$id_utilisateur, $id_buvette]);
+        return $req->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getReductionPalier($palier) {
+        $reductions = [
+            'Bronze' => 0,
+            'Argent' => 5,
+            'Or' => 10
+        ];
+        return $reductions[$palier] ?? 0;
+    }
+
+    public function getAllClientsAvecPoints($id_buvette) {
+        $bdd = Connexion::getBdd();
+        $req = $bdd->prepare("
+            SELECT u.*, pf.points_actuels, pf.points_total_cumules, pf.palier
+            FROM utilisateur u
+            INNER JOIN points_fidelite pf ON u.id_utilisateur = pf.id_utilisateur
+            WHERE pf.id_buvette = ?
+            ORDER BY pf.points_total_cumules DESC
+        ");
+        $req->execute([$id_buvette]);
+        return $req->fetchAll(PDO::FETCH_ASSOC);
     }
 }

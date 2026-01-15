@@ -170,6 +170,9 @@ class VueGestionnaire {
                     <a href="index.php?module=gestionnaire&action=tresorerie&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-success rounded-pill">
                         <i class="bi bi-cash-coin"></i> Trésorerie
                     </a>
+                    <a href="index.php?module=gestionnaire&action=fidelite&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-warning rounded-pill">
+                        <i class="bi bi-star-fill"></i> Fidélité
+                    </a>
                 </div>
             </div>
 
@@ -903,6 +906,199 @@ class VueGestionnaire {
                 toast.show();
             });
         </script>
+        <?php
+    }
+
+    // ==================== FIDÉLITÉ ====================
+    public function afficherGestionFidelite($clients, $id_buvette) {
+        ?>
+        <div class="container mt-5 pt-5">
+            <h2 class="font-handwritten mb-4">Programme de Fidélité</h2>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-warning bg-opacity-10">
+                        <h6 class="text-uppercase small fw-bold">🥉 BRONZE</h6>
+                        <p class="mb-0 small">0-499 points<br>Aucun avantage</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 p-3" style="background: linear-gradient(135deg, #C0C0C0 0%, #E8E8E8 100%);">
+                        <h6 class="text-uppercase small fw-bold">🥈 ARGENT</h6>
+                        <p class="mb-0 small">500-1499 points<br><strong>5% de réduction</strong></p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 p-3" style="background: linear-gradient(135deg, #FFD700 0%, #FFF8DC 100%);">
+                        <h6 class="text-uppercase small fw-bold">🥇 OR</h6>
+                        <p class="mb-0 small">1500+ points<br><strong>10% de réduction</strong></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h5 class="fw-bold mb-3">Liste des Clients</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Client</th>
+                            <th>Email</th>
+                            <th>Palier</th>
+                            <th>Points actuels</th>
+                            <th>Total cumulé</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach($clients as $c):
+                            $badgeClass = match($c['palier']) {
+                                'Bronze' => 'bg-warning',
+                                'Argent' => 'bg-secondary',
+                                'Or' => 'bg-warning text-dark',
+                                default => 'bg-secondary'
+                            };
+                            $icon = match($c['palier']) {
+                                'Bronze' => '🥉',
+                                'Argent' => '🥈',
+                                'Or' => '🥇',
+                                default => ''
+                            };
+                            ?>
+                            <tr>
+                                <td><strong><?= htmlspecialchars($c['nom'].' '.$c['prenom']) ?></strong></td>
+                                <td><?= htmlspecialchars($c['email']) ?></td>
+                                <td><span class="badge <?= $badgeClass ?> rounded-pill"><?= $icon ?> <?= $c['palier'] ?></span></td>
+                                <td><strong><?= $c['points_actuels'] ?></strong> pts</td>
+                                <td><?= $c['points_total_cumules'] ?> pts</td>
+                                <td class="text-center">
+                                    <a href="index.php?module=gestionnaire&action=details_fidelite&id_client=<?= $c['id_utilisateur'] ?>&id_buvette=<?= $id_buvette ?>" class="btn btn-sm btn-outline-dark rounded-pill">Détails</a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a href="index.php?module=gestionnaire&id_buvette=<?= $id_buvette ?>" class="btn btn-dark rounded-pill">Retour au tableau de bord</a>
+            </div>
+        </div>
+        <?php
+    }
+
+    public function afficherDetailsFidelite($client, $points, $historique, $id_buvette, $token) {
+        $badgeClass = match($points['palier']) {
+            'Bronze' => 'bg-warning',
+            'Argent' => 'bg-secondary',
+            'Or' => 'bg-warning text-dark',
+            default => 'bg-secondary'
+        };
+        $icon = match($points['palier']) {
+            'Bronze' => '🥉',
+            'Argent' => '🥈',
+            'Or' => '🥇',
+            default => ''
+        };
+        ?>
+        <div class="container mt-5 pt-5">
+            <div class="card border-0 shadow-lg rounded-5 p-5 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="font-handwritten mb-1"><?= htmlspecialchars($client['nom'].' '.$client['prenom']) ?></h2>
+                        <p class="text-muted mb-0"><?= htmlspecialchars($client['email']) ?></p>
+                    </div>
+                    <span class="badge <?= $badgeClass ?> rounded-pill px-4 py-2" style="font-size: 1.2rem;">
+                        <?= $icon ?> <?= $points['palier'] ?>
+                    </span>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <div class="card border-0 bg-success bg-opacity-10 p-4 text-center">
+                            <h6 class="text-uppercase small text-muted mb-1">Points Actuels</h6>
+                            <h2 class="fw-bold text-success mb-0"><?= $points['points_actuels'] ?></h2>
+                            <small class="text-muted">Utilisables : <?= floor($points['points_actuels'] / 100) * 10 ?> € de réduction</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-0 bg-primary bg-opacity-10 p-4 text-center">
+                            <h6 class="text-uppercase small text-muted mb-1">Total Cumulé</h6>
+                            <h2 class="fw-bold text-primary mb-0"><?= $points['points_total_cumules'] ?></h2>
+                            <small class="text-muted">
+                                <?php if ($points['palier'] === 'Bronze'): ?>
+                                    Encore <?= 500 - $points['points_total_cumules'] ?> pts pour Argent
+                                <?php elseif ($points['palier'] === 'Argent'): ?>
+                                    Encore <?= 1500 - $points['points_total_cumules'] ?> pts pour Or
+                                <?php else: ?>
+                                    Palier maximum atteint !
+                                <?php endif; ?>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 bg-light p-4 mb-4">
+                    <h6 class="fw-bold mb-3">Ajuster les points manuellement</h6>
+                    <form action="index.php?module=gestionnaire&action=ajuster_points&id_buvette=<?= $id_buvette ?>" method="POST">
+                        <input type="hidden" name="csrf_token" value="<?= $token ?>">
+                        <input type="hidden" name="id_client" value="<?= $client['id_utilisateur'] ?>">
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Points</label>
+                                <input type="number" name="points" class="form-control" placeholder="+100 ou -50" required>
+                                <small class="text-muted">Positif = ajout, Négatif = retrait</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Raison</label>
+                                <input type="text" name="description" class="form-control" placeholder="Ex: Bonus anniversaire" required>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">Valider</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <h5 class="fw-bold mb-3">Historique des Points</h5>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Points</th>
+                            <th>Description</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach($historique as $h):
+                            $isGain = ($h['type_mouvement'] === 'Gain');
+                            $textClass = $isGain ? 'text-success' : 'text-danger';
+                            $signe = $isGain ? '+' : '';
+                            ?>
+                            <tr>
+                                <td><?= date('d/m/Y H:i', strtotime($h['date_mouvement'])) ?></td>
+                                <td>
+                                        <span class="badge <?= $isGain ? 'bg-success' : 'bg-danger' ?> rounded-pill">
+                                            <?= $h['type_mouvement'] ?>
+                                        </span>
+                                </td>
+                                <td class="fw-bold <?= $textClass ?>"><?= $signe ?><?= $h['points'] ?></td>
+                                <td><?= htmlspecialchars($h['description']) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a href="index.php?module=gestionnaire&action=fidelite&id_buvette=<?= $id_buvette ?>" class="btn btn-dark rounded-pill">Retour à la liste</a>
+            </div>
+        </div>
         <?php
     }
 }

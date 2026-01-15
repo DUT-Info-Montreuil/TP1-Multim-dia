@@ -282,6 +282,46 @@ class ContGestionnaire {
 
                 header("Location: index.php?module=gestionnaire&action=tresorerie&id_buvette=$id_buvette");
                 exit();
+
+            // ==================== FIDÉLITÉ ====================
+            case 'fidelite':
+                $clients = $this->modele->getAllClientsAvecPoints($id_buvette);
+                $this->vue->afficherGestionFidelite($clients, $id_buvette);
+                break;
+
+            case 'details_fidelite':
+                $id_client = $_GET['id_client'] ?? null;
+                if ($id_client) {
+                    $points = $this->modele->getPointsFidelite($id_client, $id_buvette);
+                    $historique = $this->modele->getHistoriquePoints($id_client, $id_buvette);
+                    $client = $this->modele->getUtilisateurById($id_client);
+
+                    $this->vue->afficherDetailsFidelite($client, $points, $historique, $id_buvette, $token);
+                }
+                break;
+
+            case 'ajuster_points':
+                if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
+                    die("CSRF Error");
+                }
+
+                $id_client = $_POST['id_client'];
+                $points = (int)$_POST['points'];
+                $description = $_POST['description'];
+
+                try {
+                    if ($points > 0) {
+                        $this->modele->ajouterPoints($id_client, $id_buvette, $points, $description);
+                    } else {
+                        $this->modele->utiliserPoints($id_client, $id_buvette, abs($points), $description);
+                    }
+                    $_SESSION['notif'] = "Points ajustés avec succès !";
+                } catch (Exception $e) {
+                    $_SESSION['notif'] = "Erreur : " . $e->getMessage();
+                }
+
+                header("Location: index.php?module=gestionnaire&action=details_fidelite&id_client=$id_client&id_buvette=$id_buvette");
+                exit();
         }
     }
 }
