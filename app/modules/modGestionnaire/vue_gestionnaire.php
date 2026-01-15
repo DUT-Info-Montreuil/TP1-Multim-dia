@@ -335,24 +335,38 @@ class VueGestionnaire {
 
             <div class="bg-white rounded-4 shadow-sm p-4">
                 <h5 class="fw-bold mb-4">MEMBRES OFFICIELS (RÔLE CLIENT)</h5>
-                <table class="table table-hover align-middle">
-                    <thead class="table-dark">
-                    <tr><th>Nom</th><th>Email</th><th>Depuis le</th><th class="text-center">Action</th></tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach($membres as $m): ?>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-dark">
                         <tr>
-                            <td><?= htmlspecialchars($m['nom']." ".$m['prenom']) ?></td>
-                            <td><?= htmlspecialchars($m['email']) ?></td>
-                            <td><?= date('d/m/Y', strtotime($m['date_debut'])) ?></td>
-                            <td class="text-center">
-                                <a href="index.php?module=gestionnaire&action=supprimer_membre&id_utilisateur=<?= $m['id_utilisateur'] ?>&id_buvette=<?= $id_buvette ?>" class="btn btn-sm btn-outline-danger rounded-pill" onclick="return confirm('Révoquer ce client ?');">Révoquer</a>
-                            </td>
+                            <th>Nom</th>
+                            <th>Email</th>
+                            <th>Depuis le</th>
+                            <th>Expire le</th> <th class="text-center">Action</th>
                         </tr>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                        <?php foreach($membres as $m): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($m['nom']." ".$m['prenom']) ?></td>
+                                <td><?= htmlspecialchars($m['email']) ?></td>
+                                <td><?= date('d/m/Y', strtotime($m['date_debut'])) ?></td>
+                                <td>
+                                <span class="badge bg-light text-dark border">
+                                    <i class="bi bi-calendar-event me-1"></i>
+                                    <?= isset($m['date_fin']) ? date('d/m/Y', strtotime($m['date_fin'])) : 'N/A' ?>
+                                </span>
+                                </td>
+                                <td class="text-center">
+                                    <a href="index.php?module=gestionnaire&action=supprimer_membre&id_utilisateur=<?= $m['id_utilisateur'] ?>&id_buvette=<?= $id_buvette ?>" class="btn btn-sm btn-outline-danger rounded-pill" onclick="return confirm('Révoquer ce client ?');">Révoquer</a>
+                                </td>
+                            </tr>
+                        <?php endforeach; if(empty($membres)) echo "<tr><td colspan='5' class='text-muted text-center'>Aucun membre actif.</td></tr>"; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
             <div class="mt-4"><a href="index.php?module=gestionnaire&id_buvette=<?= $id_buvette ?>" class="btn btn-dark rounded-pill">Retour</a></div>
         </div>
         <?php

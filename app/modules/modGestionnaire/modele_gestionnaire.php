@@ -134,7 +134,10 @@ class ModeleGestionnaire {
             $reqRole->execute();
             $id_role_client = $reqRole->fetchColumn();
 
-            $reqIns = $bdd->prepare("INSERT INTO affecter (id_role, id_utilisateur, id_buvette, date_debut) VALUES (?, ?, ?, CURDATE())");
+            $reqIns = $bdd->prepare("
+            INSERT INTO affecter (id_role, id_utilisateur, id_buvette, date_debut, date_fin) 
+            VALUES (?, ?, ?, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 1 YEAR))
+        ");
             $reqIns->execute([$id_role_client, $id_utilisateur, $id_buvette]);
 
             $reqDel = $bdd->prepare("DELETE FROM adhesion WHERE id_utilisateur = ? AND id_buvette = ?");
