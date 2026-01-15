@@ -23,8 +23,9 @@
                         </li>
                     <?php endif; ?>
 
-                    <li class="nav-item"><a class="nav-link text-white mx-3" href="#">Notre histoire</a></li>
-                    <li class="nav-item"><a class="nav-link text-white mx-3" href="#">Galerie</a></li>
+                    <li class="nav-item"><a class="nav-link text-white mx-3" href="index.php?module=histoire">Notre histoire</a></li>
+
+                    <li class="nav-item"><a class="nav-link text-white mx-3" href="index.php?module=galerie">Galerie</a></li>
                 </ul>
 
                 <div class="d-flex align-items-center">
@@ -137,8 +138,16 @@
                         </ul>
                     </div>
 
-            <?php else: ?>
-                <ul class="navbar-nav mx-auto"></ul> <a href="index.php?module=connexion" class="btn bg-custom-dark rounded-0 px-4 py-2 text-white">
+            <?php else:
+                // MENU VISITEUR (NON CONNECTÉ)
+                ?>
+                <ul class="navbar-nav mx-auto align-items-center">
+                    <!-- Liens publics ajoutés ici -->
+                    <li class="nav-item"><a class="nav-link text-white mx-3" href="index.php?module=histoire">Notre histoire</a></li>
+                    <li class="nav-item"><a class="nav-link text-white mx-3" href="index.php?module=galerie">Galerie</a></li>
+                </ul>
+
+                <a href="index.php?module=connexion" class="btn bg-custom-dark rounded-0 px-4 py-2 text-white">
                     Démarrer la soirée
                 </a>
             <?php endif; ?>

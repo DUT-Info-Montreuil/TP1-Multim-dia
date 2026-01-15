@@ -18,6 +18,14 @@ switch ($module) {
         require_once 'app/modules/modAccueil/mod_accueil.php';
         $mod = new ModAccueil();
         break;
+    case 'histoire':
+        require_once 'app/modules/modHistoire/mod_histoire.php';
+        $mod = new ModHistoire();
+        break;
+    case 'galerie': // Nouveau module Galerie
+        require_once 'app/modules/modGalerie/mod_galerie.php';
+        $mod = new ModGalerie();
+        break;
     case 'connexion':
         require_once 'app/modules/modConnexion/mod_connexion.php';
         $mod = new ModConnexion();

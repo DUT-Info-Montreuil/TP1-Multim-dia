@@ -13,13 +13,16 @@ class ContServeur {
 
     public function exec() {
         $action = isset($_GET['action']) ? $_GET['action'] : 'dashboard';
-        $idBuvette = isset($_SESSION['id_buvette']) ? $_SESSION['id_buvette'] : 1;
+
+        // Gestion ID Buvette
+        if (isset($_GET['id_buvette'])) {
+            $_SESSION['id_buvette'] = (int)$_GET['id_buvette'];
+        }
+        $idBuvette = isset($_SESSION['id_buvette']) ? $_SESSION['id_buvette'] : 0;
 
         switch ($action) {
-            // --- GESTION AJAX ---
             case 'rechercher_user':
                 if (isset($_GET['query'])) {
-                    // Désactive l'affichage du template pour renvoyer du JSON pur
                     ob_clean();
                     echo json_encode($this->modele->rechercherUtilisateur($_GET['query']));
                     exit();
@@ -36,21 +39,19 @@ class ContServeur {
                 }
                 break;
 
-            // --- GESTION STATUTS ---
-
-            // AVANCER : Réservé -> Préparation -> Arrivé -> Parti
+            // AVANCER DANS LE CYCLE
             case 'cycle_statut':
                 if (isset($_GET['id']) && isset($_GET['actuel'])) {
                     $actuel = $_GET['actuel'];
                     $next = $actuel;
 
-                    if ($actuel == 'Réservé' || $actuel == 'reserve') {
-                        $next = 'Préparation';
-                    } elseif ($actuel == 'Préparation') {
-                        $next = 'Arrivé';
-                    } elseif ($actuel == 'Arrivé') {
-                        $next = 'Parti';
-                    }
+                    // Ajout de la gestion "Attente Validation"
+                    if ($actuel == 'En attente') { $next = 'Payé'; }
+                    elseif ($actuel == 'Attente Validation') { $next = 'Payé'; } // Forçage manuel possible par le serveur
+                    elseif ($actuel == 'Payé') { $next = 'Préparation'; }
+                    elseif ($actuel == 'Réservé') { $next = 'Préparation'; }
+                    elseif ($actuel == 'Préparation') { $next = 'Prêt'; }
+                    elseif ($actuel == 'Prêt' || $actuel == 'Arrivé') { $next = 'Parti'; }
 
                     if ($next !== $actuel) {
                         $this->modele->changerStatut($_GET['id'], $next);
@@ -59,21 +60,17 @@ class ContServeur {
                 header("Location: index.php?module=serveur");
                 break;
 
-            // RECULER : Arrivé -> Préparation -> Réservé
-            // INTERDIT si "Parti" ou "Annulé"
+            // RECULER DANS LE CYCLE
             case 'revert_statut':
                 if (isset($_GET['id']) && isset($_GET['actuel'])) {
                     $actuel = $_GET['actuel'];
                     $prev = $actuel;
 
-                    // Modification demandée : Bloquer retour pour 'Parti' et 'Annulé'
-                    if ($actuel == 'Annulé' || $actuel == 'Parti') {
-                        $prev = $actuel; // Ne change rien
-                    } elseif ($actuel == 'Arrivé') {
-                        $prev = 'Préparation';
-                    } elseif ($actuel == 'Préparation') {
-                        $prev = 'Réservé';
-                    }
+                    if ($actuel == 'Annulé' || $actuel == 'Parti') { $prev = $actuel; }
+                    elseif ($actuel == 'Prêt' || $actuel == 'Arrivé') { $prev = 'Préparation'; }
+                    elseif ($actuel == 'Préparation') { $prev = 'Payé'; }
+                    elseif ($actuel == 'Payé') { $prev = 'En attente'; }
+                    // Si on est en Attente Validation, on ne peut pas vraiment reculer, sauf vers Annulé
 
                     if ($prev !== $actuel) {
                         $this->modele->changerStatut($_GET['id'], $prev);
@@ -87,15 +84,26 @@ class ContServeur {
                 header("Location: index.php?module=serveur");
                 break;
 
+            case 'changer_statut': // Pour le select box
+                if (isset($_POST['id_commande']) && isset($_POST['nouveau_statut'])) {
+                    $this->modele->changerStatut($_POST['id_commande'], $_POST['nouveau_statut']);
+                }
+                header("Location: index.php?module=serveur");
+                break;
+
             case 'dashboard':
             default:
-                $reservations = $this->modele->getListeReservations($idBuvette);
-                $produits = $this->modele->getTousLesProduits(); // Pour le panneau de vente
+                if ($idBuvette == 0) {
+                    echo "<div class='container mt-5 pt-5 alert alert-warning'>Veuillez sélectionner une buvette via le menu.</div>";
+                } else {
+                    $reservations = $this->modele->getListeReservations($idBuvette);
+                    $produits = $this->modele->getTousLesProduits();
 
-                foreach ($reservations as &$resa) {
-                    $resa['details'] = $this->modele->getDetailsCommande($resa['id_commande']);
+                    foreach ($reservations as &$resa) {
+                        $resa['details'] = $this->modele->getDetailsCommande($resa['id_commande']);
+                    }
+                    $this->vue->afficherDashboard($reservations, $produits);
                 }
-                $this->vue->afficherDashboard($reservations, $produits);
                 break;
         }
     }
