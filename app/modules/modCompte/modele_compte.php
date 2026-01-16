@@ -48,11 +48,11 @@ class ModeleCompte
             $sqlDel = "DELETE FROM notification_validation WHERE id_notification = ?";
             $stmtDel = $this->pdo->prepare($sqlDel);
             $stmtDel->execute([$idNotif]);
-
+            $descriptionCommande = "Paiement commande #" . $idCommande;
             $sqlMvmt = "INSERT INTO mouvement_tresorerie (id_buvette, type_mouvement, montant, categorie, description, id_utilisateur, id_commande) 
-                        VALUES (?, 'Entrée', ?, 'Vente', 'Paiement commande via notif', ?, ?)";
+                        VALUES (?, 'Entrée', ?, 'Vente', ?, ?, ?)";
             $stmtMvmt = $this->pdo->prepare($sqlMvmt);
-            $stmtMvmt->execute([$idBuvette, $montantAPayer, $idUser, $idCommande]);
+            $stmtMvmt->execute([$idBuvette, $montantAPayer,$descriptionCommande, $idUser, $idCommande]);
 
             $this->pdo->commit();
             return 1;

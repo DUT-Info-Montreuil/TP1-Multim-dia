@@ -65,7 +65,7 @@ class VueGestionnaire {
                     <div class="row g-5">
                         <div class="col-md-4 text-center">
                             <div class="bg-white rounded-4 p-4 mb-3 d-flex align-items-center justify-content-center" style="min-height: 300px;">
-                                <img src="public/img/<?= htmlspecialchars($produit['image_produit']) ?>" class="img-fluid" style="max-height: 250px;">
+                                <img src="public/img/produits/<?= htmlspecialchars($produit['image_produit']) ?>" class="img-fluid" style="max-height: 250px;">
                             </div>
                             <p class="text-muted small">ID Produit : #<?= $produit['id_produit'] ?></p>
                         </div>
@@ -225,7 +225,7 @@ class VueGestionnaire {
                                     <?php endif; ?>
 
                                     <div class="card-body text-center">
-                                        <img src="public/img/<?= htmlspecialchars($p['image_produit']) ?>" class="img-fluid mb-3" style="height: 100px; object-fit: contain;">
+                                        <img src="public/img/produits/<?= htmlspecialchars($p['image_produit']) ?>" class="img-fluid mb-3" style="height: 100px; object-fit: contain;">
                                         <h6 class="card-title fw-bold text-dark mb-2"><?= htmlspecialchars($p['nom_produit']) ?></h6>
                                         <p class="text-success fw-bold mb-2"><?= number_format($p['prix_produit'], 2, ',', ' ') ?> €</p>
                                         <div class="d-flex justify-content-around small">
@@ -438,7 +438,7 @@ class VueGestionnaire {
                     <div class="col-md-4">
                         <div class="card border-0 shadow-sm rounded-4">
                             <div class="card-body text-center">
-                                <img src="public/img/<?= htmlspecialchars($p['image_produit']) ?>" class="img-fluid mb-3" style="height: 80px; object-fit: contain;">
+                                <img src="public/img/produits/<?= htmlspecialchars($p['image_produit']) ?>" class="img-fluid mb-3" style="height: 80px; object-fit: contain;">
                                 <h6 class="fw-bold"><?= htmlspecialchars($p['nom_produit']) ?></h6>
                                 <p class="text-success fw-bold mb-1">Prix d'achat: <?= number_format($p['prix_achat'], 2) ?> €</p>
                                 <p class="text-muted small">Quantité min: <?= $p['quantite_minimum'] ?></p>
@@ -729,7 +729,7 @@ class VueGestionnaire {
                         <?php foreach($lignes as $l): ?>
                             <tr>
                                 <td>
-                                    <img src="public/img/<?= htmlspecialchars($l['image_produit']) ?>" style="height: 40px; object-fit: contain;" class="me-2">
+                                    <img src="public/img/produits/<?= htmlspecialchars($l['image_produit']) ?>" style="height: 40px; object-fit: contain;" class="me-2">
                                     <strong><?= htmlspecialchars($l['nom_produit']) ?></strong>
                                 </td>
                                 <td><?= $l['quantite'] ?></td>
