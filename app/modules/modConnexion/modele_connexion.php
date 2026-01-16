@@ -41,8 +41,8 @@ class ModeleConnexion {
 
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
         try {
-            $req = $this->pdo->prepare("INSERT INTO utilisateur (nom, prenom, email, motdepasse, solde) VALUES (?, ?, ?, ?, ?)");
-            return $req->execute([$nom, $prenom, $email, $passwordHash, 0]);
+            $req = $this->pdo->prepare("INSERT INTO utilisateur (nom, prenom, email, motdepasse) VALUES (?, ?, ?, ?)");
+            return $req->execute([$nom, $prenom, $email, $passwordHash]);
         } catch (PDOException $e) {
             return false;
         }
