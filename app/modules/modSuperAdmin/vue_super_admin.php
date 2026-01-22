@@ -297,6 +297,9 @@ class VueSuperAdmin {
         <?php
     }
     public function afficherGestionBuvettes($buvettes, $token, $message = null) {
+        require_once __DIR__ . '/modele_super_admin.php';
+        $modele = new ModeleSuperAdmin();
+        $utilisateursDisponibles = $modele->getUtilisateursSansRole();
         ?>
         <div class="container mt-5 pt-5">
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -344,10 +347,19 @@ class VueSuperAdmin {
                                     <td>
                                         <?php if ($buvette['gestionnaire_nom']): ?>
                                             <span class="badge bg-success fs-6">
-                                                    <?= htmlspecialchars($buvette['gestionnaire_nom'] . ' ' . $buvette['gestionnaire_prenom']) ?>
-                                                </span>
+                                                <?= htmlspecialchars($buvette['gestionnaire_nom'] . ' ' . $buvette['gestionnaire_prenom']) ?>
+                                            </span>
                                         <?php else: ?>
-                                            <span class="badge bg-warning fs-6">Aucun gestionnaire</span>
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge bg-warning fs-6 me-2">Aucun gestionnaire</span>
+                                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#attribuerGestionnaireBuvetteModal"
+                                                        data-id-buvette="<?= $buvette['id_buvette'] ?>"
+                                                        data-nom-buvette="<?= htmlspecialchars($buvette['nom']) ?>">
+                                                    <i class="fas fa-user-plus"></i> Attribuer
+                                                </button>
+                                            </div>
                                         <?php endif; ?>
                                     </td>
                                     <td>
@@ -380,6 +392,52 @@ class VueSuperAdmin {
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Attribuer Gestionnaire à une Buvette -->
+        <div class="modal fade" id="attribuerGestionnaireBuvetteModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="POST" action="index.php?module=superadmin&action=attribuer_gestionnaire_buvette">
+                        <input type="hidden" name="csrf_token" value="<?= $token ?>">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Attribuer un Gestionnaire</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" name="id_buvette" id="attribuer_id_buvette">
+
+                            <div class="mb-3">
+                                <p>Buvette : <strong id="attribuer_nom_buvette"></strong></p>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="attribuer_id_utilisateur" class="form-label">Sélectionner un utilisateur *</label>
+                                <select class="form-control" name="id_utilisateur" id="attribuer_id_utilisateur" required>
+                                    <option value="">Choisir un utilisateur...</option>
+                                    <?php foreach ($utilisateursDisponibles as $utilisateur): ?>
+                                        <option value="<?= $utilisateur['id_utilisateur'] ?>">
+                                            <?= htmlspecialchars($utilisateur['nom'] . ' ' . $utilisateur['prenom'] . ' (' . $utilisateur['email'] . ')') ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <?php if (empty($utilisateursDisponibles)): ?>
+                                    <div class="form-text text-warning">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Aucun utilisateur disponible. Tous les utilisateurs ont déjà un rôle.
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <button type="submit" class="btn btn-success" <?= empty($utilisateursDisponibles) ? 'disabled' : '' ?>>
+                                <i class="fas fa-user-plus"></i> Attribuer
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -500,6 +558,12 @@ class VueSuperAdmin {
         </div>
 
         <script>
+            document.getElementById('attribuerGestionnaireBuvetteModal').addEventListener('show.bs.modal', function (event) {
+                let button = event.relatedTarget;
+                document.getElementById('attribuer_id_buvette').value = button.getAttribute('data-id-buvette');
+                document.getElementById('attribuer_nom_buvette').textContent = button.getAttribute('data-nom-buvette');
+            });
+
             document.getElementById('modifierBuvetteModal').addEventListener('show.bs.modal', function (event) {
                 let button = event.relatedTarget;
                 document.getElementById('modifier_id_buvette').value = button.getAttribute('data-id');

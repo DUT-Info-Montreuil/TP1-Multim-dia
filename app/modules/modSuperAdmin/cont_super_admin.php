@@ -57,11 +57,48 @@ class ContSuperAdmin {
             case 'journal_activite':
                 $this->journalActivite();
                 break;
+            case 'attribuer_gestionnaire_buvette':
+                $this->attribuerGestionnaireBuvette();
+                break;
             default:
                 $this->afficherTableauBord();
         }
     }
 
+    private function attribuerGestionnaireBuvette() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_buvette'], $_POST['id_utilisateur'])) {
+            // CSRF validation
+            if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
+                die("Erreur de sécurité CSRF");
+            }
+
+            $id_buvette = $_POST['id_buvette'];
+            $id_utilisateur = $_POST['id_utilisateur'];
+
+            // Utiliser la méthode existante attribuerRoleGestionnaire
+            $result = $this->modele->attribuerRoleGestionnaire($id_utilisateur, $id_buvette);
+
+            if ($result) {
+                $utilisateur = $this->modele->getUtilisateurById($id_utilisateur);
+                $buvette = $this->modele->getBuvetteById($id_buvette);
+
+                $this->modele->ajouterJournalActivite(
+                    'Attribution gestionnaire depuis gestion buvette',
+                    'Buvette: ' . $buvette['nom'],
+                    'Utilisateur: ' . $utilisateur['email']
+                );
+
+                header('Location: index.php?module=superadmin&action=gestion_buvettes&message=gestionnaire_attribue');
+                exit();
+            } else {
+                header('Location: index.php?module=superadmin&action=gestion_buvettes&message=error_attribution');
+                exit();
+            }
+        } else {
+            header('Location: index.php?module=superadmin&action=gestion_buvettes');
+            exit();
+        }
+    }
     private function creerBuvette() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'creer') {
             // CSRF validation
@@ -171,6 +208,8 @@ class ContSuperAdmin {
             if ($_POST['action'] === 'modifier' && isset($_POST['id_buvette'])) {
                 $est_ouverte = isset($_POST['est_ouverte']) ? 1 : 0;
 
+                $ancienneBuvette = $this->modele->getBuvetteById($_POST['id_buvette']);
+
                 $result = $this->modele->modifierBuvette(
                     $_POST['id_buvette'],
                     $_POST['nom'],
@@ -179,10 +218,31 @@ class ContSuperAdmin {
                 );
                 if ($result) {
                     $buvette = $this->modele->getBuvetteById($_POST['id_buvette']);
+
+                    $details = [];
+
+                    if ($ancienneBuvette['nom'] !== $_POST['nom']) {
+                        $details[] = "Nom: " . $ancienneBuvette['nom'] . " => " . $_POST['nom'];
+                    }
+
+                    if ($ancienneBuvette['description'] !== $_POST['description']) {
+                        $details[] = "Description modifiée";
+                    }
+
+                    if ($ancienneBuvette['est_ouverte'] != $est_ouverte) {
+                        $statut_ancien = $ancienneBuvette['est_ouverte'] ? 'Ouverte' : 'Fermée';
+                        $statut_nouveau = $est_ouverte ? 'Ouverte' : 'Fermée';
+                        $details[] = "Statut: " . $statut_ancien . " => " . $statut_nouveau;
+                    }
+
+                    if (empty($details)) {
+                        $details[] = "Aucun changement détecté (sauvegarde)";
+                    }
+
                     $this->modele->ajouterJournalActivite(
                         'Modification buvette',
                         'ID: ' . $_POST['id_buvette'] . ' ' . $buvette['nom'],
-                        'Nom modifié en: ' . $_POST['nom']
+                        implode(' | ', $details)
                     );
                     $message = "Buvette modifiée avec succès";
                     $buvettes = $this->modele->getBuvettes();
@@ -205,6 +265,12 @@ class ContSuperAdmin {
                     break;
                 case 'error_creation':
                     $message = "Erreur lors de la création de la buvette";
+                    break;
+                case 'gestionnaire_attribue':
+                    $message = "Gestionnaire attribué avec succès";
+                    break;
+                case 'error_attribution':
+                    $message = "Erreur : Cette buvette a déjà un gestionnaire ou l'utilisateur est déjà gestionnaire d'une autre buvette";
                     break;
                 case 'statut_updated':
                     $message = "Statut de la buvette modifié avec succès";
