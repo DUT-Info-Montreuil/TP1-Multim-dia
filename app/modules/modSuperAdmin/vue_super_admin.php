@@ -527,14 +527,14 @@ class VueSuperAdmin {
             </div>
         </div>
 
-        <!-- Modal Supprimer Buvette -->
+        <!-- Dans le modal de suppression/archivage -->
         <div class="modal fade" id="supprimerBuvetteModal" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <form method="POST" action="index.php?module=superadmin&action=supprimer_buvette">
                         <input type="hidden" name="csrf_token" value="<?= $token ?>">
                         <div class="modal-header">
-                            <h5 class="modal-title">Archiver la buvette</h5>
+                            <h5 class="modal-title">Archiver la Buvette</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
@@ -542,15 +542,23 @@ class VueSuperAdmin {
 
                             <div class="alert alert-warning">
                                 <i class="fas fa-exclamation-triangle"></i>
-                                <strong>Attention :</strong> Voulez-vous archiver cette buvette ?
-                                Elle ne sera plus visible mais les données historiques (réservations, commandes) seront conservées.
+                                Vous êtes sur le point d'archiver définitivement la buvette :
+                                <strong id="supprimer_nom_buvette"></strong>
                             </div>
 
-                            <p>Buvette : <strong id="supprimer_nom_buvette"></strong></p>
+                            <div class="mb-3">
+                                <label for="raison_archivage" class="form-label">Raison de l'archivage *</label>
+                                <textarea class="form-control" name="raison_archivage" id="raison_archivage"
+                                          rows="3" placeholder="Expliquez pourquoi vous archivez cette buvette..."
+                                          required></textarea>
+                                <div class="form-text">Cette information sera conservée dans l'historique.</div>
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                            <button type="submit" class="btn btn-danger">Archiver</button>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-archive"></i> Archiver définitivement
+                            </button>
                         </div>
                     </form>
                 </div>

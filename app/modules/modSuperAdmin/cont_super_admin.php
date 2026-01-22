@@ -200,7 +200,7 @@ class ContSuperAdmin {
         $message = null;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-            //  CSRF
+            // CSRF
             if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
                 die("Erreur de sécurité CSRF");
             }
@@ -208,46 +208,61 @@ class ContSuperAdmin {
             if ($_POST['action'] === 'modifier' && isset($_POST['id_buvette'])) {
                 $est_ouverte = isset($_POST['est_ouverte']) ? 1 : 0;
 
+                // Récupérer l'ancienne buvette
                 $ancienneBuvette = $this->modele->getBuvetteById($_POST['id_buvette']);
 
-                $result = $this->modele->modifierBuvette(
-                    $_POST['id_buvette'],
-                    $_POST['nom'],
-                    $_POST['description'],
-                    $est_ouverte
-                );
-                if ($result) {
-                    $buvette = $this->modele->getBuvetteById($_POST['id_buvette']);
-
-                    $details = [];
-
-                    if ($ancienneBuvette['nom'] !== $_POST['nom']) {
-                        $details[] = "Nom: " . $ancienneBuvette['nom'] . " => " . $_POST['nom'];
-                    }
-
-                    if ($ancienneBuvette['description'] !== $_POST['description']) {
-                        $details[] = "Description modifiée";
-                    }
-
-                    if ($ancienneBuvette['est_ouverte'] != $est_ouverte) {
-                        $statut_ancien = $ancienneBuvette['est_ouverte'] ? 'Ouverte' : 'Fermée';
-                        $statut_nouveau = $est_ouverte ? 'Ouverte' : 'Fermée';
-                        $details[] = "Statut: " . $statut_ancien . " => " . $statut_nouveau;
-                    }
-
-                    if (empty($details)) {
-                        $details[] = "Aucun changement détecté (sauvegarde)";
-                    }
-
-                    $this->modele->ajouterJournalActivite(
-                        'Modification buvette',
-                        'ID: ' . $_POST['id_buvette'] . ' ' . $buvette['nom'],
-                        implode(' | ', $details)
-                    );
-                    $message = "Buvette modifiée avec succès";
-                    $buvettes = $this->modele->getBuvettes();
+                // Vérifier si la buvette existe
+                if (!$ancienneBuvette) {
+                    $message = "Erreur : Buvette introuvable";
                 } else {
-                    $message = "Erreur lors de la modification";
+                    $result = $this->modele->modifierBuvette(
+                        $_POST['id_buvette'],
+                        $_POST['nom'],
+                        $_POST['description'],
+                        $est_ouverte
+                    );
+
+                    if ($result) {
+                        // Récupérer la nouvelle version de la buvette
+                        $buvette = $this->modele->getBuvetteById($_POST['id_buvette']);
+
+                        // Vérifier si la récupération a réussi
+                        if ($buvette) {
+                            $details = [];
+
+                            if ($ancienneBuvette['nom'] !== $_POST['nom']) {
+                                $details[] = "Nom: " . $ancienneBuvette['nom'] . " => " . $_POST['nom'];
+                            }
+
+                            if ($ancienneBuvette['description'] !== $_POST['description']) {
+                                $details[] = "Description modifiée";
+                            }
+
+                            if ($ancienneBuvette['est_ouverte'] != $est_ouverte) {
+                                $statut_ancien = $ancienneBuvette['est_ouverte'] ? 'Ouverte' : 'Fermée';
+                                $statut_nouveau = $est_ouverte ? 'Ouverte' : 'Fermée';
+                                $details[] = "Statut: " . $statut_ancien . " => " . $statut_nouveau;
+                            }
+
+                            if (empty($details)) {
+                                $details[] = "Aucun changement détecté (sauvegarde)";
+                            }
+
+                            $this->modele->ajouterJournalActivite(
+                                'Modification buvette',
+                                'ID: ' . $_POST['id_buvette'] . ' ' . $buvette['nom'],
+                                implode(' | ', $details)
+                            );
+                            $message = "Buvette modifiée avec succès";
+                        } else {
+                            $message = "Erreur : Impossible de récupérer les données mises à jour";
+                        }
+
+                        // Recharger la liste des buvettes
+                        $buvettes = $this->modele->getBuvettes();
+                    } else {
+                        $message = "Erreur lors de la modification";
+                    }
                 }
             }
         }
@@ -281,7 +296,6 @@ class ContSuperAdmin {
         $token = $this->csrf->getToken();
         $this->vue->afficherGestionBuvettes($buvettes, $token, $message);
     }
-
 
     private function gestionGestionnaires() {
         $token = $this->csrf->getToken();
@@ -369,7 +383,9 @@ class ContSuperAdmin {
             }
 
             $id_buvette = $_POST['id_buvette'];
-            $result = $this->modele->archiverBuvette($id_buvette);
+            $raison_archivage = isset($_POST['raison_archivage']) ? $_POST['raison_archivage'] : null;
+
+            $result = $this->modele->archiverBuvette($id_buvette, $raison_archivage);
 
             if ($result) {
                 header('Location: index.php?module=superadmin&action=gestion_buvettes&message=archived');
@@ -383,7 +399,6 @@ class ContSuperAdmin {
             exit();
         }
     }
-
     private function retirerGestionnaire() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_utilisateur'])) {
             if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
