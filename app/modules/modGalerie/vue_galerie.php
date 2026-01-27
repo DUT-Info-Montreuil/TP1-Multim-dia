@@ -85,15 +85,18 @@ class VueGalerie
 
             </div>
 
-            <!-- Call to action -->
-            <div class="bg-custom-dark text-white rounded-5 p-5 text-center mb-5 fade-in-up" style="animation-delay: 0.6s;">
-                <h2 class="font-handwritten mb-3">Envie de nous rejoindre ?</h2>
-                <p class="mb-4 text-white-50">Venez découvrir l'ambiance par vous-même !</p>
-                <div class="d-flex justify-content-center gap-3">
-                    <a href="index.php?module=connexion" class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm">Se connecter</a>
-                    <a href="index.php?module=connexion&action=form_inscription" class="btn btn-outline-light rounded-pill px-4">Créer un compte</a>
+            <!-- Call to Action : Visible uniquement si NON connecté -->
+            <?php if (!isset($_SESSION['user'])): ?>
+                <div class="container text-center mt-5 mb-5 pb-4">
+                    <div class="bg-light p-5 rounded-4 border border-warning border-2 shadow-sm">
+                        <h3 class="font-handwritten display-6 mb-3">Envie d'apparaître ici ?</h3>
+                        <p class="lead text-muted mb-4">Rejoignez-nous lors de nos prochaines soirées et faites partie de l'album souvenir !</p>
+                        <a href="index.php?module=connexion" class="btn bg-custom-dark text-white rounded-pill px-5 py-3 fw-bold shadow hover-scale">
+                            Se connecter pour participer <i class="bi bi-camera-fill ms-2"></i>
+                        </a>
+                    </div>
                 </div>
-            </div>
+            <?php endif; ?>
         </div>
 
         <style>

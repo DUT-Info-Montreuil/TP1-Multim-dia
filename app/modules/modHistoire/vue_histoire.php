@@ -86,12 +86,14 @@ class VueHistoire {
                 </div>
             </div>
 
-            <!-- Call to Action -->
-            <div class="text-center mt-5 pt-4">
-                <a href="index.php?module=buvettes" class="btn btn-warning rounded-pill px-5 py-3 fw-bold shadow-sm text-uppercase">
-                    Rejoignez la fête <i class="bi bi-arrow-right ms-2"></i>
-                </a>
-            </div>
+            <!-- Call to Action : Visible uniquement si NON connecté -->
+            <?php if (!isset($_SESSION['user'])): ?>
+                <div class="text-center mt-5 pt-4">
+                    <a href="index.php?module=connexion" class="btn btn-warning rounded-pill px-5 py-3 fw-bold shadow-sm text-uppercase">
+                        Rejoignez la fête <i class="bi bi-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            <?php endif; ?>
 
         </div>
 
