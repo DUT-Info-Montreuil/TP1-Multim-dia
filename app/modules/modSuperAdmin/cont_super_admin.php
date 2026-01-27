@@ -75,7 +75,6 @@ class ContSuperAdmin {
             $id_buvette = $_POST['id_buvette'];
             $id_utilisateur = $_POST['id_utilisateur'];
 
-            // Utiliser la méthode existante attribuerRoleGestionnaire
             $result = $this->modele->attribuerRoleGestionnaire($id_utilisateur, $id_buvette);
 
             if ($result) {
@@ -84,7 +83,7 @@ class ContSuperAdmin {
 
                 $this->modele->ajouterJournalActivite(
                     'Attribution gestionnaire depuis gestion buvette',
-                    'Buvette: ' . $buvette['nom'],
+                    'Buvette ID: ' . $id_buvette . ' - ' . $buvette['nom'],
                     'Utilisateur: ' . $utilisateur['email']
                 );
 
@@ -208,10 +207,8 @@ class ContSuperAdmin {
             if ($_POST['action'] === 'modifier' && isset($_POST['id_buvette'])) {
                 $est_ouverte = isset($_POST['est_ouverte']) ? 1 : 0;
 
-                // Récupérer l'ancienne buvette
                 $ancienneBuvette = $this->modele->getBuvetteById($_POST['id_buvette']);
 
-                // Vérifier si la buvette existe
                 if (!$ancienneBuvette) {
                     $message = "Erreur : Buvette introuvable";
                 } else {
@@ -223,10 +220,8 @@ class ContSuperAdmin {
                     );
 
                     if ($result) {
-                        // Récupérer la nouvelle version de la buvette
                         $buvette = $this->modele->getBuvetteById($_POST['id_buvette']);
 
-                        // Vérifier si la récupération a réussi
                         if ($buvette) {
                             $details = [];
 
@@ -250,7 +245,7 @@ class ContSuperAdmin {
 
                             $this->modele->ajouterJournalActivite(
                                 'Modification buvette',
-                                'ID: ' . $_POST['id_buvette'] . ' ' . $buvette['nom'],
+                                'Buvette ID: ' . $_POST['id_buvette'] . ' - ' . $buvette['nom'],
                                 implode(' | ', $details)
                             );
                             $message = "Buvette modifiée avec succès";
@@ -258,7 +253,6 @@ class ContSuperAdmin {
                             $message = "Erreur : Impossible de récupérer les données mises à jour";
                         }
 
-                        // Recharger la liste des buvettes
                         $buvettes = $this->modele->getBuvettes();
                     } else {
                         $message = "Erreur lors de la modification";
@@ -433,8 +427,30 @@ class ContSuperAdmin {
     }
 
     private function journalActivite() {
-        $activites = $this->modele->getJournalActivite();
-        $this->vue->afficherJournalActivite($activites);
+        $filtres = [];
+
+        if (isset($_GET['filtre_action']) && !empty($_GET['filtre_action'])) {
+            $filtres['action'] = $_GET['filtre_action'];
+        }
+
+        if (isset($_GET['filtre_administrateur']) && !empty($_GET['filtre_administrateur'])) {
+            $filtres['administrateur'] = $_GET['filtre_administrateur'];
+        }
+
+        if (isset($_GET['filtre_date']) && !empty($_GET['filtre_date'])) {
+            $filtres['date'] = $_GET['filtre_date'];
+        }
+
+        if (isset($_GET['filtre_date_debut']) && !empty($_GET['filtre_date_debut'])) {
+            $filtres['date_debut'] = $_GET['filtre_date_debut'];
+        }
+
+        if (isset($_GET['filtre_date_fin']) && !empty($_GET['filtre_date_fin'])) {
+            $filtres['date_fin'] = $_GET['filtre_date_fin'];
+        }
+
+        $activites = $this->modele->getJournalActivite($filtres);
+        $this->vue->afficherJournalActivite($activites, $filtres);
     }
 }
 ?>

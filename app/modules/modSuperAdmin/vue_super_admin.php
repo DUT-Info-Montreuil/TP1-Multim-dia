@@ -791,14 +791,14 @@ class VueSuperAdmin {
         <?php
     }
 
-    public function afficherJournalActivite($activites) {
+    public function afficherJournalActivite($activites, $filtres = null) {
         ?>
-         <style>
-             .bg-purple {
-                 background-color: #6f42c1;
-                 color: white;
-             }
-         </style>
+        <style>
+            .bg-purple {
+                background-color: #6f42c1;
+                color: white;
+            }
+        </style>
         <div class="container mt-5 pt-5">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="font-handwritten">Journal d'Activité</h1>
@@ -807,47 +807,202 @@ class VueSuperAdmin {
                 </a>
             </div>
 
+            <!-- Formulaire de filtrage -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-filter me-2"></i>Filtres
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="index.php" class="row g-3">
+                        <input type="hidden" name="module" value="superadmin">
+                        <input type="hidden" name="action" value="journal_activite">
+
+                        <div class="col-md-4">
+                            <label for="filtre_action" class="form-label">Action</label>
+                            <select class="form-control" name="filtre_action" id="filtre_action">
+                                <option value="">Toutes les actions</option>
+                                <?php
+                                $actionsUniques = [];
+                                foreach ($activites as $activite) {
+                                    if (!in_array($activite['action'], $actionsUniques)) {
+                                        $actionsUniques[] = $activite['action'];
+                                        $selected = ($filtres && isset($filtres['action']) && $filtres['action'] === $activite['action']) ? 'selected' : '';
+                                        echo "<option value=\"" . htmlspecialchars($activite['action']) . "\" $selected>" . htmlspecialchars($activite['action']) . "</option>";
+                                    }
+                                }
+                                ?>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="filtre_administrateur" class="form-label">Administrateur</label>
+                            <select class="form-control" name="filtre_administrateur" id="filtre_administrateur">
+                                <option value="">Tous les administrateurs</option>
+                                <?php
+                                $adminsUniques = [];
+                                foreach ($activites as $activite) {
+                                    $adminLabel = htmlspecialchars($activite['email']);
+                                    if (!in_array($adminLabel, $adminsUniques)) {
+                                        $adminsUniques[] = $adminLabel;
+                                        $selected = ($filtres && isset($filtres['administrateur']) && $filtres['administrateur'] === $activite['email']) ? 'selected' : '';
+                                        echo "<option value=\"" . htmlspecialchars($activite['email']) . "\" $selected>" . $adminLabel . "</option>";
+                                    }
+                                }
+                                ?>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="filtre_date" class="form-label">Période</label>
+                            <select class="form-control" name="filtre_date" id="filtre_date">
+                                <option value="">Toutes les périodes</option>
+                                <option value="today" <?= ($filtres && isset($filtres['date']) && $filtres['date'] === 'today') ? 'selected' : '' ?>>Aujourd'hui</option>
+                                <option value="yesterday" <?= ($filtres && isset($filtres['date']) && $filtres['date'] === 'yesterday') ? 'selected' : '' ?>>Hier</option>
+                                <option value="last_7_days" <?= ($filtres && isset($filtres['date']) && $filtres['date'] === 'last_7_days') ? 'selected' : '' ?>>7 derniers jours</option>
+                                <option value="last_30_days" <?= ($filtres && isset($filtres['date']) && $filtres['date'] === 'last_30_days') ? 'selected' : '' ?>>30 derniers jours</option>
+                                <option value="this_month" <?= ($filtres && isset($filtres['date']) && $filtres['date'] === 'this_month') ? 'selected' : '' ?>>Ce mois</option>
+                                <option value="last_month" <?= ($filtres && isset($filtres['date']) && $filtres['date'] === 'last_month') ? 'selected' : '' ?>>Mois dernier</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="filtre_date_debut" class="form-label">Date de début</label>
+                            <input type="date" class="form-control" name="filtre_date_debut" id="filtre_date_debut"
+                                   value="<?= ($filtres && isset($filtres['date_debut'])) ? htmlspecialchars($filtres['date_debut']) : '' ?>">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="filtre_date_fin" class="form-label">Date de fin</label>
+                            <input type="date" class="form-control" name="filtre_date_fin" id="filtre_date_fin"
+                                   value="<?= ($filtres && isset($filtres['date_fin'])) ? htmlspecialchars($filtres['date_fin']) : '' ?>">
+                        </div>
+
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-filter me-1"></i> Appliquer les filtres
+                                    </button>
+                                    <?php if ($filtres && !empty(array_filter($filtres))): ?>
+                                        <a href="index.php?module=superadmin&action=journal_activite" class="btn btn-secondary ms-2">
+                                            <i class="fas fa-times me-1"></i> Réinitialiser
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
+                                <div>
+                                    <span class="badge bg-info fs-6">
+                                        <?= count($activites) ?> activité(s) trouvée(s)
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tableau des activités -->
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Historique des Actions Administratives</h5>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                            <tr>
-                                <th>Horodatage</th>
-                                <th>Action</th>
-                                <th>Cible</th>
-                                <th>Détails</th>
-                                <th>Administrateur</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <?php foreach ($activites as $activite): ?>
-                                <tr>
-                                    <td><?= date('d/m/Y H:i:s', strtotime($activite['horodatage'])) ?></td>
-                                    <td>
-                                        <span class="badge bg-purple fs-6"><?= htmlspecialchars($activite['action']) ?></span>
-                                    </td>
-                                    <td><?= htmlspecialchars($activite['cible']) ?></td>
-                                    <td><?= htmlspecialchars($activite['details']) ?></td>
-                                    <td><?= htmlspecialchars($activite['email']) ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-
                     <?php if (empty($activites)): ?>
-                        <div class="text-center py-4">
-                            <p class="text-muted">Aucune activité enregistrée</p>
+                        <div class="text-center py-5">
+                            <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                            <h4>Aucune activité trouvée</h4>
+                            <p class="text-muted">Aucune activité ne correspond à vos critères de recherche.</p>
+                            <a href="index.php?module=superadmin&action=journal_activite" class="btn btn-primary">
+                                <i class="fas fa-redo me-1"></i> Réinitialiser les filtres
+                            </a>
                         </div>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                <tr>
+                                    <th>Horodatage</th>
+                                    <th>Action</th>
+                                    <th>Cible</th>
+                                    <th>Détails</th>
+                                    <th>Administrateur</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <?php foreach ($activites as $activite): ?>
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold"><?= date('d/m/Y', strtotime($activite['horodatage'])) ?></div>
+                                            <small class="text-muted"><?= date('H:i:s', strtotime($activite['horodatage'])) ?></small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-purple fs-6"><?= htmlspecialchars($activite['action']) ?></span>
+                                        </td>
+                                        <td><?= htmlspecialchars($activite['cible']) ?></td>
+                                        <td>
+                                            <?php if ($activite['details']): ?>
+                                                <div data-bs-toggle="tooltip" title="<?= htmlspecialchars($activite['details']) ?>">
+                                                    <?= strlen($activite['details']) > 50 ? htmlspecialchars(substr($activite['details'], 0, 50)) . '...' : htmlspecialchars($activite['details']) ?>
+                                                </div>
+                                            <?php else: ?>
+                                                <span class="text-muted">-</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-user-circle me-2 text-muted"></i>
+                                                <?= htmlspecialchars($activite['email']) ?>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <?php if (count($activites) > 100): ?>
+                            <div class="alert alert-info mt-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Affichage limité aux 100 résultats les plus récents. Utilisez les filtres pour affiner votre recherche.
+                            </div>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </div>
             </div>
         </div>
+
+        <script>
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Gérer les dates prédéfinies vs dates personnalisées
+            document.getElementById('filtre_date').addEventListener('change', function() {
+                const dateDebut = document.getElementById('filtre_date_debut');
+                const dateFin = document.getElementById('filtre_date_fin');
+
+                // Réinitialiser les dates manuelles lorsqu'une date prédéfinie est sélectionnée
+                if (this.value) {
+                    dateDebut.value = '';
+                    dateFin.value = '';
+                }
+            });
+
+            // Réinitialiser le select de période quand on modifie les dates manuelles
+            document.getElementById('filtre_date_debut').addEventListener('change', function() {
+                if (this.value) {
+                    document.getElementById('filtre_date').value = '';
+                }
+            });
+
+            document.getElementById('filtre_date_fin').addEventListener('change', function() {
+                if (this.value) {
+                    document.getElementById('filtre_date').value = '';
+                }
+            });
+        </script>
         <?php
-    }
-}
+    }}
 ?>

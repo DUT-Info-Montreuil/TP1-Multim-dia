@@ -136,20 +136,83 @@ class ModeleSuperAdmin {
         }
     }
 
-    public function getJournalActivite() {
+    public function getJournalActivite($filtres = null) {
         try {
-            $stmt = $this->bdd->prepare("
+            $query = "
             SELECT ja.*, u.email
             FROM journal_activite ja
             JOIN utilisateur u ON ja.id_utilisateur = u.id_utilisateur
-            ORDER BY ja.horodatage DESC
-        ");
+            WHERE 1=1
+            ";
+
+            $params = [];
+
+            // Appliquer les filtres
+            if ($filtres) {
+                // Filtre par action
+                if (!empty($filtres['action'])) {
+                    $query .= " AND ja.action = :action";
+                    $params[':action'] = $filtres['action'];
+                }
+
+                // Filtre par administrateur (email)
+                if (!empty($filtres['administrateur'])) {
+                    $query .= " AND u.email = :email";
+                    $params[':email'] = $filtres['administrateur'];
+                }
+
+                // Filtre par date prédéfinie
+                if (!empty($filtres['date'])) {
+                    switch ($filtres['date']) {
+                        case 'today':
+                            $query .= " AND DATE(ja.horodatage) = CURDATE()";
+                            break;
+                        case 'yesterday':
+                            $query .= " AND DATE(ja.horodatage) = CURDATE() - INTERVAL 1 DAY";
+                            break;
+                        case 'last_7_days':
+                            $query .= " AND ja.horodatage >= CURDATE() - INTERVAL 7 DAY";
+                            break;
+                        case 'last_30_days':
+                            $query .= " AND ja.horodatage >= CURDATE() - INTERVAL 30 DAY";
+                            break;
+                        case 'this_month':
+                            $query .= " AND MONTH(ja.horodatage) = MONTH(CURDATE()) 
+                                      AND YEAR(ja.horodatage) = YEAR(CURDATE())";
+                            break;
+                        case 'last_month':
+                            $query .= " AND MONTH(ja.horodatage) = MONTH(CURDATE() - INTERVAL 1 MONTH) 
+                                      AND YEAR(ja.horodatage) = YEAR(CURDATE() - INTERVAL 1 MONTH)";
+                            break;
+                    }
+                }
+
+                // Filtre par plage de dates personnalisée
+                if (!empty($filtres['date_debut'])) {
+                    $query .= " AND DATE(ja.horodatage) >= :date_debut";
+                    $params[':date_debut'] = $filtres['date_debut'];
+                }
+
+                if (!empty($filtres['date_fin'])) {
+                    $query .= " AND DATE(ja.horodatage) <= :date_fin";
+                    $params[':date_fin'] = $filtres['date_fin'];
+                }
+            }
+
+            $query .= " ORDER BY ja.horodatage DESC LIMIT 100";
+
+            $stmt = $this->bdd->prepare($query);
+
+            // Liaison des paramètres
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value);
+            }
 
             $stmt->execute();
-
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         } catch (PDOException $e) {
+            error_log("Erreur lors de la récupération du journal d'activité: " . $e->getMessage());
             return [];
         }
     }
