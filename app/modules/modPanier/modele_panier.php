@@ -108,7 +108,7 @@ class ModelePanier {
     public function validerCommande($idUser, $idCommande, $total) {;
 
         $stmt = $this->pdo->prepare("UPDATE commande 
-                SET statut = 'En attente', 
+                SET statut = 'En attente confirmation', 
                     est_paye = 0, 
                     date_commande = NOW(), 
                     prix_total = ? 

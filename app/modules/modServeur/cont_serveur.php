@@ -46,8 +46,7 @@ class ContServeur {
                     $next = $actuel;
 
                     // Ajout de la gestion "Attente Validation"
-                    if ($actuel == 'En attente') { $next = 'Payé'; }
-                    elseif ($actuel == 'Attente Validation') { $next = 'Payé'; } // Forçage manuel possible par le serveur
+                    if ($actuel == 'En attente confirmation') { $next = 'Payé'; }
                     elseif ($actuel == 'Payé') { $next = 'Préparation'; }
                     elseif ($actuel == 'Réservé') { $next = 'Préparation'; }
                     elseif ($actuel == 'Préparation') { $next = 'Prêt'; }
@@ -55,6 +54,9 @@ class ContServeur {
 
                     if ($next !== $actuel) {
                         $this->modele->changerStatut($_GET['id'], $next);
+                        if ($next === 'Parti') {
+                            $this->modele->debiterCommandeSiNonPayee($_GET['id']);
+                        }
                     }
                 }
                 header("Location: index.php?module=serveur");
@@ -66,10 +68,10 @@ class ContServeur {
                     $actuel = $_GET['actuel'];
                     $prev = $actuel;
 
-                    if ($actuel == 'Annulé' || $actuel == 'Parti') { $prev = $actuel; }
+                    if ($actuel == 'Annulé' || $actuel == 'Annulée' || $actuel == 'Parti') { $prev = $actuel; }
                     elseif ($actuel == 'Prêt' || $actuel == 'Arrivé') { $prev = 'Préparation'; }
                     elseif ($actuel == 'Préparation') { $prev = 'Payé'; }
-                    elseif ($actuel == 'Payé') { $prev = 'En attente'; }
+                    elseif ($actuel == 'Payé') { $prev = $actuel; }
                     // Si on est en Attente Validation, on ne peut pas vraiment reculer, sauf vers Annulé
 
                     if ($prev !== $actuel) {
@@ -79,14 +81,39 @@ class ContServeur {
                 header("Location: index.php?module=serveur");
                 break;
 
+            case 'confirmer_commande':
+                if (isset($_POST['id_commande'])) {
+                    $this->modele->changerStatut($_POST['id_commande'], 'Payé');
+                }
+                header("Location: index.php?module=serveur");
+                break;
+
             case 'annuler':
-                if (isset($_GET['id'])) $this->modele->annulerCommande($_GET['id']);
+                if (isset($_POST['id_commande'])) {
+                    $statutActuel = $this->modele->getStatutCommande($_POST['id_commande']);
+                    if ($statutActuel !== 'Attente Validation') {
+                        $this->modele->annulerCommande($_POST['id_commande']);
+                    }
+                } elseif (isset($_GET['id'])) {
+                    $statutActuel = $this->modele->getStatutCommande($_GET['id']);
+                    if ($statutActuel !== 'Attente Validation') {
+                        $this->modele->annulerCommande($_GET['id']);
+                    }
+                }
                 header("Location: index.php?module=serveur");
                 break;
 
             case 'changer_statut': // Pour le select box
                 if (isset($_POST['id_commande']) && isset($_POST['nouveau_statut'])) {
-                    $this->modele->changerStatut($_POST['id_commande'], $_POST['nouveau_statut']);
+                    $statutActuel = $this->modele->getStatutCommande($_POST['id_commande']);
+                    $statutsAutorises = ['Préparation', 'Arrivé', 'Parti', 'Annulée', 'Annulé'];
+                    if ($statutActuel && $statutActuel !== 'Attente Validation' && $statutActuel !== 'En attente confirmation'
+                        && in_array($_POST['nouveau_statut'], $statutsAutorises, true)) {
+                        $this->modele->changerStatut($_POST['id_commande'], $_POST['nouveau_statut']);
+                        if ($_POST['nouveau_statut'] === 'Parti') {
+                            $this->modele->debiterCommandeSiNonPayee($_POST['id_commande']);
+                        }
+                    }
                 }
                 header("Location: index.php?module=serveur");
                 break;

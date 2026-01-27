@@ -38,10 +38,10 @@ class VueServeur {
             @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
             /* Status border colors */
-            .status-border-Payé, .status-border-Réservé { border-left: 5px solid #0dcaf0 !important; }
+            .status-border-Payé, .status-border-Réservé, .status-border-Enattente, .status-border-Enattenteconfirmation, .status-border-AttenteValidation { border-left: 5px solid #0dcaf0 !important; }
             .status-border-Préparation { border-left: 5px solid #ffc107 !important; }
-            .status-border-Arrivé { border-left: 5px solid #198754 !important; }
-            .status-border-Annulé { border-left: 5px solid #dc3545 !important; }
+            .status-border-Arrivé, .status-border-Prêt { border-left: 5px solid #198754 !important; }
+            .status-border-Annulé, .status-border-Annulée { border-left: 5px solid #dc3545 !important; }
             .status-border-Parti { border-left: 5px solid #6c757d !important; }
         </style>
 
@@ -163,12 +163,17 @@ class VueServeur {
                                 $borderClass = 'status-border-' . str_replace(' ', '', $s);
 
                                 $statusConfig = [
-                                        'Payé' => ['icon' => 'bi-hourglass-split', 'color' => 'text-info', 'bg' => 'bg-info-subtle', 'label' => 'En attente'],
+                                        'En attente confirmation' => ['icon' => 'bi-hourglass-split', 'color' => 'text-info', 'bg' => 'bg-info-subtle', 'label' => 'En attente confirmation'],
+                                        'Attente Validation' => ['icon' => 'bi-hourglass-split', 'color' => 'text-info', 'bg' => 'bg-info-subtle', 'label' => 'Attente validation'],
+                                        'En attente' => ['icon' => 'bi-hourglass-split', 'color' => 'text-info', 'bg' => 'bg-info-subtle', 'label' => 'En attente'],
+                                        'Payé' => ['icon' => 'bi-check-circle', 'color' => 'text-primary', 'bg' => 'bg-primary-subtle', 'label' => 'Payé'],
                                         'Réservé' => ['icon' => 'bi-hourglass-split', 'color' => 'text-info', 'bg' => 'bg-info-subtle', 'label' => 'Réservé'],
                                         'Préparation' => ['icon' => 'bi-fire', 'color' => 'text-warning', 'bg' => 'bg-warning-subtle', 'label' => 'En cuisine'],
+                                        'Prêt' => ['icon' => 'bi-check-circle', 'color' => 'text-success', 'bg' => 'bg-success-subtle', 'label' => 'Prêt à servir'],
                                         'Arrivé' => ['icon' => 'bi-check-circle', 'color' => 'text-success', 'bg' => 'bg-success-subtle', 'label' => 'Prêt à servir'],
                                         'Parti' => ['icon' => 'bi-flag', 'color' => 'text-secondary', 'bg' => 'bg-secondary-subtle', 'label' => 'Terminé'],
                                         'Annulé' => ['icon' => 'bi-x-circle', 'color' => 'text-danger', 'bg' => 'bg-danger-subtle', 'label' => 'Annulé'],
+                                        'Annulée' => ['icon' => 'bi-x-circle', 'color' => 'text-danger', 'bg' => 'bg-danger-subtle', 'label' => 'Annulée'],
                                 ];
                                 $conf = $statusConfig[$s] ?? $statusConfig['Payé'];
                                 ?>
@@ -205,16 +210,43 @@ class VueServeur {
 
                                             <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top border-light">
                                                 <span class="fw-bold fs-5"><?= number_format($resa['prix_total'], 2) ?> €</span>
-                                                <form action="index.php?module=serveur&action=changer_statut" method="POST" class="w-50">
-                                                    <input type="hidden" name="id_commande" value="<?= $resa['id_commande'] ?>">
-                                                    <select name="nouveau_statut" class="form-select form-select-sm border-0 bg-light fw-bold shadow-none text-end cursor-pointer" onchange="this.form.submit()">
-                                                        <option value="Payé" <?= ($s=='Payé')?'selected':'' ?>>Attente</option>
-                                                        <option value="Préparation" class="text-warning" <?= ($s=='Préparation')?'selected':'' ?>>Cuisine</option>
-                                                        <option value="Arrivé" class="text-success" <?= ($s=='Arrivé')?'selected':'' ?>>Prêt</option>
-                                                        <option value="Parti" class="text-muted" <?= ($s=='Parti')?'selected':'' ?>>Terminé</option>
-                                                        <option value="Annulé" class="text-danger" <?= ($s=='Annulé')?'selected':'' ?>>Annuler</option>
-                                                    </select>
-                                                </form>
+                                                <?php if ($s === 'En attente confirmation'): ?>
+                                                    <div class="d-flex gap-2 w-50 justify-content-end">
+                                                        <form action="index.php?module=serveur&action=annuler" method="POST">
+                                                            <input type="hidden" name="id_commande" value="<?= $resa['id_commande'] ?>">
+                                                            <button type="submit" class="btn btn-sm btn-danger rounded-pill">Annuler</button>
+                                                        </form>
+                                                        <form action="index.php?module=serveur&action=confirmer_commande" method="POST">
+                                                            <input type="hidden" name="id_commande" value="<?= $resa['id_commande'] ?>">
+                                                            <button type="submit" class="btn btn-sm btn-success rounded-pill">Confirmer</button>
+                                                        </form>
+                                                    </div>
+                                                <?php elseif ($s === 'Attente Validation'): ?>
+                                                    <span class="text-muted small">En attente de validation client</span>
+                                                <?php else: ?>
+                                                <div class="d-flex flex-wrap gap-1 w-50 justify-content-end">
+                                                    <form action="index.php?module=serveur&action=changer_statut" method="POST">
+                                                        <input type="hidden" name="id_commande" value="<?= $resa['id_commande'] ?>">
+                                                        <input type="hidden" name="nouveau_statut" value="Préparation">
+                                                        <button type="submit" class="btn btn-sm rounded-pill <?= ($s=='Préparation') ? 'btn-warning text-dark' : 'btn-outline-warning' ?>">Prépa</button>
+                                                    </form>
+                                                    <form action="index.php?module=serveur&action=changer_statut" method="POST">
+                                                        <input type="hidden" name="id_commande" value="<?= $resa['id_commande'] ?>">
+                                                        <input type="hidden" name="nouveau_statut" value="Arrivé">
+                                                        <button type="submit" class="btn btn-sm rounded-pill <?= ($s=='Arrivé' || $s=='Prêt') ? 'btn-success' : 'btn-outline-success' ?>">Prêt</button>
+                                                    </form>
+                                                    <form action="index.php?module=serveur&action=changer_statut" method="POST">
+                                                        <input type="hidden" name="id_commande" value="<?= $resa['id_commande'] ?>">
+                                                        <input type="hidden" name="nouveau_statut" value="Parti">
+                                                        <button type="submit" class="btn btn-sm rounded-pill <?= ($s=='Parti') ? 'btn-secondary' : 'btn-outline-secondary' ?>">Terminé</button>
+                                                    </form>
+                                                    <form action="index.php?module=serveur&action=changer_statut" method="POST">
+                                                        <input type="hidden" name="id_commande" value="<?= $resa['id_commande'] ?>">
+                                                        <input type="hidden" name="nouveau_statut" value="Annulée">
+                                                        <button type="submit" class="btn btn-sm rounded-pill <?= ($s=='Annulée' || $s=='Annulé') ? 'btn-danger' : 'btn-outline-danger' ?>">Annuler</button>
+                                                    </form>
+                                                </div>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
                                     </div>
@@ -241,9 +273,17 @@ class VueServeur {
                     const statut = item.getAttribute('data-statut');
                     const client = item.getAttribute('data-client');
                     let showStatut = false;
-                    if (currentFilter === 'actif') showStatut = (statut !== 'Annulé' && statut !== 'Parti');
-                    else if (currentFilter === 'Payé') showStatut = (statut === 'Payé' || statut === 'Réservé');
-                    else showStatut = (statut === currentFilter);
+                    if (currentFilter === 'actif') {
+                        showStatut = (statut !== 'Annulé' && statut !== 'Annulée' && statut !== 'Parti');
+                    } else if (currentFilter === 'Payé') {
+                        showStatut = (statut === 'Payé' || statut === 'Réservé' || statut === 'En attente' || statut === 'En attente confirmation' || statut === 'Attente Validation');
+                    } else if (currentFilter === 'Arrivé') {
+                        showStatut = (statut === 'Arrivé' || statut === 'Prêt');
+                    } else if (currentFilter === 'Parti') {
+                        showStatut = (statut === 'Parti' || statut === 'Annulé' || statut === 'Annulée');
+                    } else {
+                        showStatut = (statut === currentFilter);
+                    }
                     let showSearch = client.includes(currentSearch);
 
                     if (showStatut && showSearch) { item.classList.remove('d-none'); item.classList.add('animate__animated', 'animate__fadeIn'); }
