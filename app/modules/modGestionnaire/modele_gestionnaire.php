@@ -134,6 +134,9 @@ class ModeleGestionnaire {
             $reqRole->execute();
             $id_role_client = $reqRole->fetchColumn();
 
+            $reqClean = $bdd->prepare("DELETE FROM affecter WHERE id_utilisateur = ? AND id_buvette = ? AND id_role = ?");
+            $reqClean->execute([$id_utilisateur, $id_buvette, $id_role_client]);
+
             $reqIns = $bdd->prepare("
             INSERT INTO affecter (id_role, id_utilisateur, id_buvette, date_debut, date_fin) 
             VALUES (?, ?, ?, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 1 YEAR))

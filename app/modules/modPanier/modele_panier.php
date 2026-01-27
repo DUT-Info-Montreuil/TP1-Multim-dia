@@ -119,7 +119,8 @@ class ModelePanier {
     public function aDesCommandesHistorique($idUser) {;
         $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM commande 
                 WHERE id_utilisateur = ? 
-                AND (statut != 'En cours' OR est_paye = 1)");
+                AND (statut != 'En cours' OR est_paye = 1)
+                AND date_commande >= DATE_SUB(NOW(), INTERVAL 1 MONTH)");
         $stmt->execute([$idUser]);
 
         return $stmt->fetchColumn() > 0;
