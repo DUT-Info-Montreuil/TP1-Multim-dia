@@ -189,8 +189,8 @@ class VueSuperAdmin {
                                             <?= htmlspecialchars($demande['nom_buvette']) ?>
                                         </h5>
                                         <span class="badge bg-<?php echo $demande['statut'] === 'En attente' ? 'warning' : 'secondary'; ?>">
-                                        <?= htmlspecialchars($demande['statut']) ?>
-                                    </span>
+                                    <?= htmlspecialchars($demande['statut']) ?>
+                                </span>
                                     </div>
                                 </div>
                                 <div class="card-body">
@@ -214,6 +214,37 @@ class VueSuperAdmin {
                                                 <i class="fas fa-calendar me-1"></i>
                                                 <?= date('d/m/Y H:i', strtotime($demande['date_demande'])) ?>
                                             </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- SECTION DES FICHIERS JUSTIFICATIFS -->
+                                    <div class="mb-4">
+                                        <h6 class="text-muted">Documents justificatifs :</h6>
+                                        <div class="row g-2">
+                                            <div class="col-md-4">
+                                                <a href="public/uploads/justificatifs/<?= htmlspecialchars($demande['fichier_statuts']) ?>"
+                                                   target="_blank"
+                                                   class="btn btn-outline-primary btn-sm w-100 d-flex align-items-center justify-content-center">
+                                                    <i class="fas fa-file-pdf me-1"></i> Statuts
+                                                </a>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <a href="public/uploads/justificatifs/<?= htmlspecialchars($demande['fichier_pv_ag']) ?>"
+                                                   target="_blank"
+                                                   class="btn btn-outline-primary btn-sm w-100 d-flex align-items-center justify-content-center">
+                                                    <i class="fas fa-file-pdf me-1"></i> PV AG
+                                                </a>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <a href="public/uploads/justificatifs/<?= htmlspecialchars($demande['fichier_cnid']) ?>"
+                                                   target="_blank"
+                                                   class="btn btn-outline-primary btn-sm w-100 d-flex align-items-center justify-content-center">
+                                                    <i class="fas fa-id-card me-1"></i> Pièce d'identité
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div class="form-text mt-1">
+                                            <i class="fas fa-info-circle"></i> Cliquez sur les boutons pour consulter les documents
                                         </div>
                                     </div>
 
@@ -729,7 +760,7 @@ class VueSuperAdmin {
                             <div class="mb-3">
                                 <label for="modifier_id_buvette" class="form-label">Nouvelle buvette</label>
                                 <select class="form-control" name="id_buvette" id="modifier_id_buvette">
-<!--                                    <option value="">Aucune buvette (retirer de l'assignation actuelle)</option>-->
+                                    <!--                                    <option value="">Aucune buvette (retirer de l'assignation actuelle)</option>-->
                                     <?php foreach ($buvettesDisponibles as $buvette): ?>
                                         <option value="<?= $buvette['id_buvette'] ?>">
                                             <?= htmlspecialchars($buvette['nom']) ?>
@@ -791,6 +822,29 @@ class VueSuperAdmin {
         <?php
     }
 
+    public function afficherDetailDemande($demande) {
+        $token = isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '';
+        ?>
+        <div class="container mt-5 pt-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="font-handwritten">Détail de la demande</h1>
+                <a href="index.php?module=superadmin&action=gestion_demandes_creation" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Retour
+                </a>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Demande : <?= htmlspecialchars($demande['nom_buvette']) ?></h5>
+                </div>
+                <div class="card-body">
+                    <!-- Afficher les mêmes informations que dans la liste mais en plus détaillé -->
+                    <!-- Avec possibilité de visualiser les fichiers en grand -->
+                </div>
+            </div>
+        </div>
+        <?php
+    }
     public function afficherJournalActivite($activites, $filtres = null) {
         ?>
         <style>

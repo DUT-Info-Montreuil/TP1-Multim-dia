@@ -60,6 +60,9 @@ class ContSuperAdmin {
             case 'attribuer_gestionnaire_buvette':
                 $this->attribuerGestionnaireBuvette();
                 break;
+            case 'voir_demande':
+                $this->voirDemandeCreation();
+                break;
             default:
                 $this->afficherTableauBord();
         }
@@ -451,6 +454,23 @@ class ContSuperAdmin {
 
         $activites = $this->modele->getJournalActivite($filtres);
         $this->vue->afficherJournalActivite($activites, $filtres);
+    }
+
+    private function voirDemandeCreation() {
+        if (isset($_GET['id'])) {
+            $id_demande = $_GET['id'];
+            $demande = $this->modele->getDemandeCreationById($id_demande);
+
+            if ($demande) {
+                $this->vue->afficherDetailDemande($demande);
+            } else {
+                header('Location: index.php?module=superadmin&action=gestion_demandes_creation&message=not_found');
+                exit();
+            }
+        } else {
+            header('Location: index.php?module=superadmin&action=gestion_demandes_creation');
+            exit();
+        }
     }
 }
 ?>

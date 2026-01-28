@@ -51,38 +51,47 @@ class ModeleSuperAdmin {
     public function getDemandesCreation() {
         try {
             $stmt = $this->bdd->prepare("
-        SELECT dc.*, 
-               u.nom as demandeur_nom, 
-               u.prenom as demandeur_prenom, 
-               u.email as demandeur_email
-        FROM demande_creation_buvette dc
-        JOIN utilisateur u ON dc.id_utilisateur = u.id_utilisateur
-        WHERE dc.statut = 'En attente'
-        ORDER BY dc.date_demande DESC
+            SELECT dc.*, 
+                   u.nom as demandeur_nom, 
+                   u.prenom as demandeur_prenom, 
+                   u.email as demandeur_email,
+                   dc.fichier_statuts,
+                   dc.fichier_pv_ag,
+                   dc.fichier_cnid
+            FROM demande_creation_buvette dc
+            JOIN utilisateur u ON dc.id_utilisateur = u.id_utilisateur
+            WHERE dc.statut = 'En attente'
+            ORDER BY dc.date_demande DESC
         ");
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
+            error_log("Erreur récupération demandes création: " . $e->getMessage());
             return [];
         }
     }
 
-
-/*    public function getBuvettes() {
-        $stmt = $this->bdd->prepare("
-            SELECT b.*,
-                   u.nom as gestionnaire_nom,
-                   u.prenom as gestionnaire_prenom,
-                   u.id_utilisateur as gestionnaire_id
-            FROM une_buvette b
-            LEFT JOIN utilisateur u ON b.id_gestionnaire = u.id_utilisateur
-            WHERE b.archivee = 0
-            ORDER BY b.nom
+    public function getDemandeCreationById($id_demande) {
+        try {
+            $stmt = $this->bdd->prepare("
+            SELECT dc.*, 
+                   u.nom as demandeur_nom, 
+                   u.prenom as demandeur_prenom, 
+                   u.email as demandeur_email,
+                   dc.fichier_statuts,
+                   dc.fichier_pv_ag,
+                   dc.fichier_cnid
+            FROM demande_creation_buvette dc
+            JOIN utilisateur u ON dc.id_utilisateur = u.id_utilisateur
+            WHERE dc.id_demande = ?
         ");
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }*/
-
+            $stmt->execute([$id_demande]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Erreur récupération demande par ID: " . $e->getMessage());
+            return null;
+        }
+    }
     public function getBuvettes() {
         $stmt = $this->bdd->prepare("
         SELECT 
@@ -104,13 +113,14 @@ class ModeleSuperAdmin {
     ");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }    public function modifierBuvette($id, $nom, $description, $est_ouverte) {
+    }
+    public function modifierBuvette($id, $nom, $description, $est_ouverte) {
         try {
             $stmt = $this->bdd->prepare("
-                UPDATE une_buvette 
-                SET nom = ?, description = ?, est_ouverte = ?
-                WHERE id_buvette = ?
-            ");
+                    UPDATE une_buvette 
+                    SET nom = ?, description = ?, est_ouverte = ?
+                    WHERE id_buvette = ?
+                ");
             return $stmt->execute([$nom, $description, $est_ouverte, $id]);
         } catch (PDOException $e) {
             return false;
@@ -203,7 +213,6 @@ class ModeleSuperAdmin {
 
             $stmt = $this->bdd->prepare($query);
 
-            // Liaison des paramètres
             foreach ($params as $key => $value) {
                 $stmt->bindValue($key, $value);
             }
@@ -349,22 +358,23 @@ class ModeleSuperAdmin {
             error_log("ARCHIVAGE ERREUR [Buvette $id_buvette]: " . $e->getMessage());
             return false;
         }
-    }    public function getGestionnaires() {
+    }
+    public function getGestionnaires() {
         try {
             $stmt = $this->bdd->prepare("
-        SELECT DISTINCT u.id_utilisateur, u.nom, u.prenom, u.email,
-               b.nom as buvette_nom, b.id_buvette,
-               a.date_debut, a.date_fin
-        FROM utilisateur u
-        INNER JOIN affecter a ON u.id_utilisateur = a.id_utilisateur
-        INNER JOIN role_utilisateur r ON a.id_role = r.id_role
-        LEFT JOIN une_buvette b ON a.id_buvette = b.id_buvette
-        WHERE r.nom_role = 'gestionnaire'
-        AND a.date_debut <= CURDATE()
-        AND (a.date_fin IS NULL OR a.date_fin > CURDATE()) 
-        AND b.archivee IS NULL
-        ORDER BY u.nom, u.prenom
-    ");
+            SELECT DISTINCT u.id_utilisateur, u.nom, u.prenom, u.email,
+                   b.nom as buvette_nom, b.id_buvette,
+                   a.date_debut, a.date_fin
+            FROM utilisateur u
+            INNER JOIN affecter a ON u.id_utilisateur = a.id_utilisateur
+            INNER JOIN role_utilisateur r ON a.id_role = r.id_role
+            LEFT JOIN une_buvette b ON a.id_buvette = b.id_buvette
+            WHERE r.nom_role = 'gestionnaire'
+            AND a.date_debut <= CURDATE()
+            AND (a.date_fin IS NULL OR a.date_fin > CURDATE()) 
+            AND b.archivee IS NULL
+            ORDER BY u.nom, u.prenom
+        ");
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
@@ -617,19 +627,19 @@ class ModeleSuperAdmin {
             $stmt->execute([':id' => $id_buvette]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            // Retourner le résultat ou false si null
             return $result ?: false;
 
         } catch (PDOException $e) {
             error_log("Erreur récupération buvette par ID: " . $e->getMessage());
             return false;
         }
-    }    public function creerBuvette($nom, $description) {
+    }
+    public function creerBuvette($nom, $description) {
         try {
             $stmt = $this->bdd->prepare("
-            INSERT INTO une_buvette (nom, description, est_ouverte, archivee) 
-            VALUES (:nom, :description, 0, NULL)
-        ");
+                INSERT INTO une_buvette (nom, description, est_ouverte, archivee) 
+                VALUES (:nom, :description, 0, NULL)
+            ");
 
             return $stmt->execute([
                 ':nom' => $nom,
@@ -724,7 +734,6 @@ class ModeleSuperAdmin {
         }
     }
 
-// Méthode utilitaire pour obtenir l'ID du rôle gestionnaire
     private function getRoleGestionnaireId() {
         try {
             $stmt = $this->bdd->prepare("SELECT id_role FROM role_utilisateur WHERE nom_role = 'gestionnaire'");
