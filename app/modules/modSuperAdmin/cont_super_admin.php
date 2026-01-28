@@ -30,18 +30,9 @@ class ContSuperAdmin {
             case 'creer_buvette':
                 $this->creerBuvette();
                 break;
-//            case 'modifier_buvette':
-//                $this->modifierBuvette();
-//                break;
             case 'supprimer_buvette':
                 $this->supprimerBuvette();
                 break;
-//            case 'attribuer_gestionnaire':
-//                $this->attribuerGestionnaire();
-//                break;
-//            case 'modifier_gestionnaire':
-//                $this->modifierGestionnaire();
-//                break;
             case 'retirer_gestionnaire':
                 $this->retirerGestionnaire();
                 break;
@@ -334,29 +325,6 @@ class ContSuperAdmin {
                         }
                     }
                     break;
-
-//                case 'modifier':
-//                    if (isset($_POST['id_utilisateur'], $_POST['id_buvette'])) {
-//                        $utilisateur = $this->modele->getUtilisateurById($_POST['id_utilisateur']);
-//
-//                        $result = $this->modele->modifierAffectationGestionnaire(
-//                            $_POST['id_utilisateur'],
-//                            $_POST['id_buvette']
-//                        );
-//                        if ($result) {
-//                            $buvette = $this->modele->getBuvetteById($_POST['id_buvette']);
-//                            $this->modele->ajouterJournalActivite(
-//                                'Modification affectation',
-//                                $utilisateur['email'],
-//                                'Nouvelle buvette ID: ' . $_POST['id_buvette'] . ' Nom: ' . $buvette['nom']
-//                            );
-//                            $message = "Affectation modifiée avec succès";
-//                            $gestionnaires = $this->modele->getGestionnaires();
-//                            $buvettesDisponibles = $this->modele->getBuvettesSansGestionnaire();
-//                        } else {
-//                            $message = "Erreur : Cette buvette a déjà un gestionnaire";
-//                        }
-//                    }
             }
         }
 
