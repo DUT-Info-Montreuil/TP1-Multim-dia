@@ -272,14 +272,6 @@ class ModeleSuperAdmin {
             $stmt = $this->bdd->prepare("DELETE FROM mouvement_tresorerie WHERE id_buvette = :id");
             $stmt->execute([':id' => $id_buvette]);
 
-            $stmt = $this->bdd->prepare("DELETE FROM commande_fournisseur WHERE id_buvette = :id");
-            $stmt->execute([':id' => $id_buvette]);
-
-            $stmt = $this->bdd->prepare("
-            DELETE lcf FROM ligne_commande_fournisseur lcf
-            JOIN commande_fournisseur cf ON lcf.id_commande_fournisseur = cf.id_commande_fournisseur
-            WHERE cf.id_buvette = :id
-        ");
             $stmt->execute([':id' => $id_buvette]);
 
             $stmt = $this->bdd->prepare("DELETE FROM commande WHERE id_buvette = :id");
