@@ -164,9 +164,6 @@ class VueGestionnaire {
                     <a href="index.php?module=gestionnaire&action=fournisseurs&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-primary rounded-pill">
                         <i class="bi bi-truck"></i> Fournisseurs
                     </a>
-                    <a href="index.php?module=gestionnaire&action=commandes_fournisseurs&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-info rounded-pill">
-                        <i class="bi bi-box-seam"></i> Commandes
-                    </a>
                     <a href="index.php?module=gestionnaire&action=tresorerie&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-success rounded-pill">
                         <i class="bi bi-cash-coin"></i> Trésorerie
                     </a>
@@ -452,7 +449,6 @@ class VueGestionnaire {
             </div>
 
             <div class="mt-4 d-flex gap-2">
-                <a href="index.php?module=gestionnaire&action=commander&id_fournisseur=<?= $fournisseur['id_fournisseur'] ?>&id_buvette=<?= $id_buvette ?>" class="btn btn-primary rounded-pill">Passer une commande</a>
                 <a href="index.php?module=gestionnaire&action=fournisseurs&id_buvette=<?= $id_buvette ?>" class="btn btn-dark rounded-pill">Retour</a>
             </div>
         </div>
