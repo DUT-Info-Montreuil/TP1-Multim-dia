@@ -114,19 +114,6 @@ class ModeleCompte
         $stmt->execute([$idUser]);
     }
 
-    public function ajouterSolde($idUser, $idBuvette, $montant) {
-        $stmtVerif = $this->pdo->prepare("SELECT COUNT(*) FROM solde WHERE id_utilisateur = ? AND id_buvette = ?");
-        $stmtVerif->execute([$idUser, $idBuvette]);
-        $existe = $stmtVerif->fetchColumn();
-
-        if ($existe) {
-            $stmt = $this->pdo->prepare("UPDATE solde SET solde = solde + ? WHERE id_utilisateur = ? AND id_buvette = ?");
-            $stmt->execute([$montant, $idUser, $idBuvette]);
-        } else {
-            $stmt = $this->pdo->prepare("INSERT INTO solde (id_utilisateur, id_buvette, solde) VALUES (?, ?, ?)");
-            $stmt->execute([$idUser, $idBuvette, $montant]);
-        }
-    }
     public function getBuvettesAdherent() {
         if (!isset($_SESSION['user']['id_utilisateur'])) return [];
 
@@ -140,6 +127,7 @@ class ModeleCompte
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
     public function getHistorique($idUser)
     {
         $stmt = $this->pdo->prepare("SELECT c.*, b.nom as nom_buvette, 

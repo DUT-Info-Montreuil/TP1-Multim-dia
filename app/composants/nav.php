@@ -66,12 +66,40 @@
                             </a>
                         </div>
                     <?php endif; ?>
+
+                    <?php
+                    $soldeActuel = 0;
+                    if (isset($_SESSION['id_buvette'])) {
+                        try {
+                            if (!class_exists('Connexion')) {
+                                require_once 'Connexion.php';
+                            }
+                            $pdoSolde = Connexion::getBdd();
+                            $stmtSolde = $pdoSolde->prepare("SELECT solde FROM solde WHERE id_utilisateur = ? AND id_buvette = ?");
+                            $stmtSolde->execute([$_SESSION['user']['id_utilisateur'], $_SESSION['id_buvette']]);
+                            $resSolde = $stmtSolde->fetch(PDO::FETCH_ASSOC);
+
+                            if ($resSolde) {
+                                $soldeActuel = $resSolde['solde'];
+                            }
+                        } catch (Exception $e) {
+                        }
+                    }
+                    ?>
+                    <div class="me-2">
+                        <a href="index.php?module=solde" class="btn btn-outline-light rounded-pill px-3 d-flex align-items-center h-100 fw-bold" title="Recharger mon compte">
+                            <i class="bi bi-wallet2 me-2"></i>
+                            Solde : <?= number_format($soldeActuel, 2) ?> €
+                        </a>
+                    </div>
                     <div class="dropdown ms-2">
                         <?php
                         $nbNotifs = 0;
                         try {
-                            $pdo = class_exists('Connexion') ? Connexion::getBdd() : new PDO('mysql:host=localhost;dbname=alacool', 'root', ''); // Adapte si besoin
-
+                            if (!class_exists('Connexion')) {
+                                require_once 'Connexion.php';
+                            }
+                            $pdo = Connexion::getBdd();
                             $sqlNotif = "SELECT COUNT(*) FROM notification_validation WHERE id_utilisateur = ? AND est_vue = 0";
                             $stmtNotif = $pdo->prepare($sqlNotif);
                             $stmtNotif->execute([$_SESSION['user']['id_utilisateur']]);
