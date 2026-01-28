@@ -134,11 +134,8 @@ class ModeleCompte
         $stmt = $this->pdo->prepare("SELECT DISTINCT b.*, COALESCE(s.solde, 0) as solde 
             FROM une_buvette b 
             JOIN affecter a ON b.id_buvette = a.id_buvette 
-            JOIN role_utilisateur r ON a.id_role = r.id_role
             LEFT JOIN solde s ON b.id_buvette = s.id_buvette AND s.id_utilisateur = a.id_utilisateur
-            WHERE a.id_utilisateur = ?
-            AND r.nom_role = 'Client'
-            AND (a.date_fin IS NULL OR a.date_fin >= CURDATE())");
+            WHERE a.id_utilisateur = ?");
         $stmt->execute([$idUser]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -175,14 +172,12 @@ class ModeleCompte
     }
     public function getHistorique($idUser)
     {
-        $this->purgerHistoriqueCommandes($idUser);
         $stmt = $this->pdo->prepare("SELECT c.*, b.nom as nom_buvette, 
             (SELECT SUM(quantite) FROM ligne_commande lc WHERE lc.id_commande = c.id_commande) as nb_articles
             FROM commande c
             JOIN une_buvette b ON c.id_buvette = b.id_buvette
             WHERE c.id_utilisateur = ? 
-            AND (c.statut != 'En cours' OR c.est_paye = 1)
-            AND c.date_commande >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+            AND (c.statut != 'En cours' OR c.est_paye = 1) 
             ORDER BY c.date_commande DESC");
         $stmt->execute([$idUser]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

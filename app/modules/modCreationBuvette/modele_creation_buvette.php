@@ -8,12 +8,21 @@ class ModeleCreationBuvette
     public function __construct() {
         $this->pdo = Connexion::getBdd();
     }
-    public function creerDemande($idUser, $nom, $description)
+    public function creerDemande($idUser, $nom, $description, $fichierStatuts, $fichierPV, $fichierCNI)
     {
+        $sql = "INSERT INTO demande_creation_buvette 
+                (nom_buvette, description, fichier_statuts, fichier_pv_ag, fichier_cnid, statut, date_demande, id_utilisateur) 
+                VALUES (?, ?, ?, ?, ?, 'En attente', NOW(), ?)";
 
-        $stmt = $this->pdo->prepare("INSERT INTO demande_creation_buvette (nom_buvette, description, statut, date_demande, id_utilisateur) 
-                VALUES (?, ?, 'En attente', NOW(), ?)");
-        return $stmt->execute([$nom, $description, $idUser]);
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute([
+            $nom,
+            $description,
+            $fichierStatuts,
+            $fichierPV,
+            $fichierCNI,
+            $idUser
+        ]);
     }
 
     public function aDemandeEnCours($idUser)

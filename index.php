@@ -66,6 +66,10 @@ switch ($module) {
         require_once 'app/modules/modCreationBuvette/mod_creation_buvette.php';
         $mod = new ModCreationBuvette();
         break;
+    case 'solde':
+        require_once 'app/modules/modSolde/mod_solde.php';
+        $mod = new ModSolde();
+        break;
 }
 
 $tampon = ob_get_clean();

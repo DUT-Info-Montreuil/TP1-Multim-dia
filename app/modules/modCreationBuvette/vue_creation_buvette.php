@@ -30,7 +30,7 @@ class VueCreationBuvette
                                 </div>
                             <?php endif; ?>
 
-                            <form action="index.php?module=creationBuvette&action=creer" method="POST">
+                            <form action="index.php?module=creationBuvette&action=creer" method="POST" enctype="multipart/form-data">
 
                                 <div class="mb-4">
                                     <label for="nom" class="form-label fw-bold text-uppercase small text-muted">Nom de la buvette</label>
@@ -43,6 +43,38 @@ class VueCreationBuvette
                                     <textarea class="form-control rounded-4 bg-light border-1"
                                               id="desc" name="description" rows="5"
                                               placeholder="Décrivez l'ambiance, ce que vous comptez vendre, pourquoi ce serait génial..." required></textarea>
+                                </div>
+
+                                <hr class="border-secondary-subtle my-4">
+
+                                <h5 class="fw-bold text-dark mb-4 font-serif">Documents justificatifs</h5>
+
+                                <div class="mb-4">
+                                    <label for="statuts" class="form-label fw-bold text-uppercase small text-muted">Statuts de l'association (PDF)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0 rounded-start-4 ps-3 text-muted"><i class="bi bi-file-earmark-pdf"></i></span>
+                                        <input type="file" class="form-control form-control-lg rounded-end-4 bg-light border-start-0 border-1"
+                                               id="statuts" name="statuts" accept=".pdf" required>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="pv_ag" class="form-label fw-bold text-uppercase small text-muted">PV d'Assemblée Générale (PDF)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0 rounded-start-4 ps-3 text-muted"><i class="bi bi-people"></i></span>
+                                        <input type="file" class="form-control form-control-lg rounded-end-4 bg-light border-start-0 border-1"
+                                               id="pv_ag" name="pv_ag" accept=".pdf" required>
+                                    </div>
+                                </div>
+
+                                <div class="mb-5">
+                                    <label for="cnid" class="form-label fw-bold text-uppercase small text-muted">Pièce d'identité (CNI / Passeport)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0 rounded-start-4 ps-3 text-muted"><i class="bi bi-person-badge"></i></span>
+                                        <input type="file" class="form-control form-control-lg rounded-end-4 bg-light border-start-0 border-1"
+                                               id="cnid" name="cnid" accept=".pdf, .jpg, .jpeg, .png" required>
+                                    </div>
+                                    <div class="form-text ms-2">Formats acceptés : PDF, JPG, PNG.</div>
                                 </div>
 
                                 <div class="alert alert-light border rounded-4 small text-muted mb-4">

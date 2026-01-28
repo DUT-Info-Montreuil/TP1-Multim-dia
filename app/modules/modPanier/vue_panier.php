@@ -18,12 +18,16 @@ class VuePanier
                         <div class="mb-3">
                             <i class="bi bi-wallet2 text-danger" style="font-size: 3rem;"></i>
                         </div>
-                        <p class="fs-5"><?= $_SESSION['modal_error'] ?></p>
-                        <p class="text-muted small">Veuillez recharger votre compte auprès d'un administrateur.</p>
+                        <p class="fs-5 fw-bold"><?= $_SESSION['modal_error'] ?></p>
+                        <p class="text-muted small mb-4">Votre solde actuel ne permet pas de valider cette commande.</p>
+                        <a href="index.php?module=solde" class="btn btn-danger rounded-pill px-4 py-2 fw-bold shadow-sm w-100">
+                            <i class="bi bi-plus-circle me-2"></i>Recharger mon solde
+                        </a>
                     </div>
                     <div class="modal-footer border-0 justify-content-center pb-4">
-                        <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">J'ai compris</button>
+                        <button type="button" class="btn btn-link text-muted text-decoration-none" data-bs-dismiss="modal">Annuler et fermer</button>
                     </div>
+
                 </div>
             </div>
         </div>
