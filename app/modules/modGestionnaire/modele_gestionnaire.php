@@ -223,151 +223,6 @@ class ModeleGestionnaire {
         return $req->execute([$nom, $email, $telephone, $adresse, $siret, $delai]);
     }
 
-    public function creerCommandeFournisseur($id_fournisseur, $id_buvette, $id_utilisateur, $lignes, $notes = '') {
-        $bdd = Connexion::getBdd();
-        try {
-            $bdd->beginTransaction();
-
-            $montant_total = 0;
-            foreach ($lignes as $ligne) {
-                $montant_total += $ligne['quantite'] * $ligne['prix_unitaire'];
-            }
-
-            $reqFourn = $bdd->prepare("SELECT delai_livraison_jours FROM fournisseur WHERE id_fournisseur = ?");
-            $reqFourn->execute([$id_fournisseur]);
-            $delai = $reqFourn->fetchColumn();
-
-            $date_livraison = date('Y-m-d', strtotime("+$delai days"));
-            $numero_commande = 'CF-' . date('YmdHis') . '-' . $id_buvette;
-
-            $req = $bdd->prepare("
-                INSERT INTO commande_fournisseur 
-                (numero_commande, date_livraison_prevue, montant_total, notes, id_fournisseur, id_buvette, id_utilisateur) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ");
-            $req->execute([$numero_commande, $date_livraison, $montant_total, $notes, $id_fournisseur, $id_buvette, $id_utilisateur]);
-
-            $id_commande = $bdd->lastInsertId();
-
-            $reqLigne = $bdd->prepare("
-                INSERT INTO ligne_commande_fournisseur (id_commande_fournisseur, id_produit, quantite, prix_unitaire) 
-                VALUES (?, ?, ?, ?)
-            ");
-            foreach ($lignes as $ligne) {
-                $reqLigne->execute([$id_commande, $ligne['id_produit'], $ligne['quantite'], $ligne['prix_unitaire']]);
-            }
-
-            // Enregistrement du mouvement de trésorerie
-            $reqMouv = $bdd->prepare("
-                INSERT INTO mouvement_tresorerie 
-                (id_buvette, type_mouvement, montant, categorie, description, id_utilisateur, id_commande_fournisseur) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ");
-            $reqMouv->execute([$id_buvette, 'Sortie', $montant_total, 'Achat fournisseur', "Commande $numero_commande", $id_utilisateur, $id_commande]);
-
-            $reqSolde = $bdd->prepare("
-                UPDATE tresorerie 
-                SET solde_actuel = solde_actuel - ? 
-                WHERE id_buvette = ?
-            ");
-            $reqSolde->execute([$montant_total, $id_buvette]);
-
-            $bdd->commit();
-            return $id_commande;
-        } catch (Exception $e) {
-            $bdd->rollBack();
-            throw $e;
-        }
-    }
-
-    public function getCommandesFournisseur($id_buvette, $statut = null) {
-        $bdd = Connexion::getBdd();
-        $sql = "
-            SELECT cf.*, f.nom_fournisseur, u.nom, u.prenom
-            FROM commande_fournisseur cf
-            INNER JOIN fournisseur f ON cf.id_fournisseur = f.id_fournisseur
-            INNER JOIN utilisateur u ON cf.id_utilisateur = u.id_utilisateur
-            WHERE cf.id_buvette = ?
-        ";
-
-        if ($statut) {
-            $sql .= " AND cf.statut = ?";
-            $req = $bdd->prepare($sql . " ORDER BY cf.date_commande DESC");
-            $req->execute([$id_buvette, $statut]);
-        } else {
-            $req = $bdd->prepare($sql . " ORDER BY cf.date_commande DESC");
-            $req->execute([$id_buvette]);
-        }
-
-        return $req->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function getDetailsCommandeFournisseur($id_commande) {
-        $bdd = Connexion::getBdd();
-        $req = $bdd->prepare("
-            SELECT cf.*, f.nom_fournisseur, f.email, f.telephone, u.nom, u.prenom
-            FROM commande_fournisseur cf
-            INNER JOIN fournisseur f ON cf.id_fournisseur = f.id_fournisseur
-            INNER JOIN utilisateur u ON cf.id_utilisateur = u.id_utilisateur
-            WHERE cf.id_commande_fournisseur = ?
-        ");
-        $req->execute([$id_commande]);
-        return $req->fetch(PDO::FETCH_ASSOC);
-    }
-
-    public function getLignesCommandeFournisseur($id_commande) {
-        $bdd = Connexion::getBdd();
-        $req = $bdd->prepare("
-            SELECT lcf.*, p.nom_produit, p.image_produit
-            FROM ligne_commande_fournisseur lcf
-            INNER JOIN produit p ON lcf.id_produit = p.id_produit
-            WHERE lcf.id_commande_fournisseur = ?
-        ");
-        $req->execute([$id_commande]);
-        return $req->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function validerLivraisonCommande($id_commande, $id_buvette) {
-        $bdd = Connexion::getBdd();
-        try {
-            $bdd->beginTransaction();
-
-            $req1 = $bdd->prepare("
-                UPDATE commande_fournisseur 
-                SET statut = 'Livrée', date_livraison_reelle = CURDATE() 
-                WHERE id_commande_fournisseur = ?
-            ");
-            $req1->execute([$id_commande]);
-
-            $lignes = $this->getLignesCommandeFournisseur($id_commande);
-
-            $reqInv = $bdd->prepare("SELECT id_inventaire FROM concerner WHERE id_buvette = ? LIMIT 1");
-            $reqInv->execute([$id_buvette]);
-            $id_inventaire = $reqInv->fetchColumn();
-
-            $reqStock = $bdd->prepare("
-                UPDATE contient 
-                SET quantite = quantite + ? 
-                WHERE id_inventaire = ? AND id_produit = ?
-            ");
-
-            foreach ($lignes as $ligne) {
-                $reqStock->execute([$ligne['quantite'], $id_inventaire, $ligne['id_produit']]);
-            }
-
-            $bdd->commit();
-            return true;
-        } catch (Exception $e) {
-            $bdd->rollBack();
-            throw $e;
-        }
-    }
-
-    public function changerStatutCommande($id_commande, $nouveau_statut) {
-        $bdd = Connexion::getBdd();
-        $req = $bdd->prepare("UPDATE commande_fournisseur SET statut = ? WHERE id_commande_fournisseur = ?");
-        return $req->execute([$nouveau_statut, $id_commande]);
-    }
 
     public function getTresorerie($id_buvette) {
         $bdd = Connexion::getBdd();
@@ -376,17 +231,17 @@ class ModeleGestionnaire {
         return $req->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function ajouterMouvementTresorerie($id_buvette, $type, $montant, $categorie, $description, $id_utilisateur, $id_commande_fournisseur = null, $id_commande = null) {
+    public function ajouterMouvementTresorerie($id_buvette, $type, $montant, $categorie, $description, $id_utilisateur, $id_commande = null) {
         $bdd = Connexion::getBdd();
         try {
             $bdd->beginTransaction();
 
             $req = $bdd->prepare("
                 INSERT INTO mouvement_tresorerie 
-                (id_buvette, type_mouvement, montant, categorie, description, id_utilisateur, id_commande_fournisseur, id_commande) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (id_buvette, type_mouvement, montant, categorie, description, id_utilisateur, id_commande) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             ");
-            $req->execute([$id_buvette, $type, $montant, $categorie, $description, $id_utilisateur, $id_commande_fournisseur, $id_commande]);
+            $req->execute([$id_buvette, $type, $montant, $categorie, $description, $id_utilisateur, $id_commande]);
 
             $operateur = ($type === 'Entrée') ? '+' : '-';
             $reqSolde = $bdd->prepare("
@@ -403,7 +258,6 @@ class ModeleGestionnaire {
             throw $e;
         }
     }
-
     public function getMouvementsTresorerie($id_buvette, $limit = 50) {
         $bdd = Connexion::getBdd();
         $limit = (int)$limit;
