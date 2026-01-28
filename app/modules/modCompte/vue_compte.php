@@ -24,7 +24,12 @@ class VueCompte
                         $badgeClass = 'bg-secondary';
                         $textStatut = $cmd['statut'];
                         switch ($cmd['statut']) {
+                            case 'En attente confirmation':
+                                $badgeClass = 'bg-warning text-dark';
+                                break;
+                            case 'Attente Validation':
                             case 'En attente':
+                            case 'Payé':
                                 $badgeClass = 'bg-warning text-dark';
                                 break;
                             case 'Préparation':
@@ -35,6 +40,7 @@ class VueCompte
                                 $badgeClass = 'bg-success';
                                 break;
                             case 'Annulée':
+                            case 'Annulé':
                                 $badgeClass = 'bg-danger';
                                 break;
                             default:

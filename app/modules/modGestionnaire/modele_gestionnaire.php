@@ -231,7 +231,7 @@ class ModeleGestionnaire {
         return $req->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function ajouterMouvementTresorerie($id_buvette, $type, $montant, $categorie, $description, $id_utilisateur, $id_commande = null) {
+    public function ajouterMouvementTresorerie($id_buvette, $type, $montant, $categorie, $description, $id_utilisateur, $id_commande_fournisseur = null, $id_commande = null) {
         $bdd = Connexion::getBdd();
         try {
             $bdd->beginTransaction();

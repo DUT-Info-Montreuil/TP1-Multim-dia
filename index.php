@@ -6,7 +6,7 @@ ob_start();
 $module = isset($_GET['module']) ? $_GET['module'] : 'accueil';
 
 // Seuls l'accueil (contenant Histoire/Galerie) et la connexion sont publics
-$modulesPublics = ['accueil', 'connexion'];
+$modulesPublics = ['accueil', 'connexion', 'histoire', 'galerie'];
 
 if (!isset($_SESSION['user']) && !in_array($module, $modulesPublics)) {
     header("Location: index.php?module=connexion");

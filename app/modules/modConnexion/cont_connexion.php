@@ -48,7 +48,16 @@ class ContConnexion {
                     return;
                 }
 
-                $succes = $this->modele->inscrireUtilisateur($_POST['nom'], $_POST['prenom'], $_POST['email'], $_POST['password']);
+                $password = $_POST['password'] ?? '';
+                if (!$this->motDePasseValideRgpd($password)) {
+                    $this->vue->afficherFormulaireInscription(
+                        "Le mot de passe doit contenir au minimum 11 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.",
+                        $token
+                    );
+                    return;
+                }
+
+                $succes = $this->modele->inscrireUtilisateur($_POST['nom'], $_POST['prenom'], $_POST['email'], $password);
                 if ($succes) {
                     $this->vue->afficherFormulaireConnexion(null, "Inscription réussie ! Connectez-vous.", $token);
                 } else {
@@ -70,5 +79,24 @@ class ContConnexion {
                 $this->vue->afficherFormulaireConnexion(null, null, $token);
                 break;
         }
+    }
+
+    private function motDePasseValideRgpd($password) {
+        if (strlen($password) < 11) {
+            return false;
+        }
+        if (!preg_match('/[A-Z]/', $password)) {
+            return false;
+        }
+        if (!preg_match('/[a-z]/', $password)) {
+            return false;
+        }
+        if (!preg_match('/\d/', $password)) {
+            return false;
+        }
+        if (!preg_match('/[^A-Za-z0-9]/', $password)) {
+            return false;
+        }
+        return true;
     }
 }

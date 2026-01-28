@@ -108,7 +108,7 @@ class ModelePanier {
     public function validerCommande($idUser, $idCommande, $total) {;
 
         $stmt = $this->pdo->prepare("UPDATE commande 
-                SET statut = 'En attente', 
+                SET statut = 'En attente confirmation', 
                     est_paye = 0, 
                     date_commande = NOW(), 
                     prix_total = ? 
@@ -119,7 +119,8 @@ class ModelePanier {
     public function aDesCommandesHistorique($idUser) {;
         $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM commande 
                 WHERE id_utilisateur = ? 
-                AND (statut != 'En cours' OR est_paye = 1)");
+                AND (statut != 'En cours' OR est_paye = 1)
+                AND date_commande >= DATE_SUB(NOW(), INTERVAL 1 MONTH)");
         $stmt->execute([$idUser]);
 
         return $stmt->fetchColumn() > 0;
