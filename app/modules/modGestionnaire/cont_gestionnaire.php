@@ -39,7 +39,6 @@ class ContGestionnaire {
         }
 
         switch($action) {
-            // ==================== GESTION STOCK ====================
             case 'liste':
             default:
                 $filtrerAlertes = isset($_GET['alerte']);
@@ -97,7 +96,6 @@ class ContGestionnaire {
                 header("Location: index.php?module=gestionnaire&action=details&id=$id_produit&id_buvette=$id_buvette");
                 exit();
 
-            // ==================== GESTION ADHÉSIONS ====================
             case 'gerer_adhesions':
                 $demandes = $this->modele->getDemandesEnAttente($id_buvette);
                 $membres = $this->modele->getMembresAcceptes($id_buvette);
@@ -128,7 +126,6 @@ class ContGestionnaire {
                 header("Location: index.php?module=gestionnaire&action=gerer_adhesions&id_buvette=$id_buvette");
                 exit();
 
-            // ==================== FOURNISSEURS ====================
             case 'fournisseurs':
                 $fournisseurs = $this->modele->getAllFournisseurs();
                 $this->vue->afficherListeFournisseurs($fournisseurs, $id_buvette, $token);
@@ -167,7 +164,6 @@ class ContGestionnaire {
                 header("Location: index.php?module=gestionnaire&action=fournisseurs&id_buvette=$id_buvette");
                 exit();
 
-            // ==================== COMMANDES FOURNISSEURS ====================
             case 'commander':
                 $id_fournisseur = $_GET['id_fournisseur'] ?? null;
                 if ($id_fournisseur) {
@@ -253,7 +249,6 @@ class ContGestionnaire {
                 header("Location: index.php?module=gestionnaire&action=details_commande_fournisseur&id_commande=$id_commande&id_buvette=$id_buvette");
                 exit();
 
-            // ==================== TRÉSORERIE ====================
             case 'tresorerie':
                 $tresorerie = $this->modele->getTresorerie($id_buvette);
                 $mouvements = $this->modele->getMouvementsTresorerie($id_buvette);
@@ -283,7 +278,41 @@ class ContGestionnaire {
                 header("Location: index.php?module=gestionnaire&action=tresorerie&id_buvette=$id_buvette");
                 exit();
 
-            // ==================== FIDÉLITÉ ====================
+
+            case 'inventaire':
+                $stocks = $this->modele->getStocksDetailles($id_buvette);
+                $historique = $this->modele->getHistoriqueChangementsStock($id_buvette);
+                $stats = $this->modele->getStatsInventaire($id_buvette);
+                $this->vue->afficherBilanInventaire($stocks, $historique, $stats, $id_buvette, $token);
+                break;
+
+            case 'ajuster_stock':
+                if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
+                    die("CSRF Error");
+                }
+
+                $id_produit = $_POST['id_produit'];
+                $type = $_POST['type_changement'];
+                $quantite = (int)$_POST['quantite'];
+                $commentaire = $_POST['commentaire'];
+
+                try {
+                    $this->modele->ajusterStock(
+                        $id_buvette,
+                        $id_produit,
+                        $type,
+                        $quantite,
+                        $commentaire,
+                        $id_user
+                    );
+                    $_SESSION['notif'] = "Stock ajusté avec succès !";
+                } catch (Exception $e) {
+                    $_SESSION['notif'] = "Erreur : " . $e->getMessage();
+                }
+
+                header("Location: index.php?module=gestionnaire&action=inventaire&id_buvette=$id_buvette");
+                exit();
+
             case 'fidelite':
                 $clients = $this->modele->getAllClientsAvecPoints($id_buvette);
                 $this->vue->afficherGestionFidelite($clients, $id_buvette);

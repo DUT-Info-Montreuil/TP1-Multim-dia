@@ -173,6 +173,9 @@ class VueGestionnaire {
                     <a href="index.php?module=gestionnaire&action=fidelite&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-warning rounded-pill">
                         <i class="bi bi-star-fill"></i> Fidélité
                     </a>
+                    <a href="index.php?module=gestionnaire&action=inventaire&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-secondary rounded-pill">
+                        <i class="bi bi-clipboard-data"></i> Bilan Inventaire
+                    </a>
                 </div>
             </div>
 
@@ -1111,6 +1114,229 @@ class VueGestionnaire {
 
             <div class="mt-4">
                 <a href="index.php?module=gestionnaire&action=fidelite&id_buvette=<?= $id_buvette ?>" class="btn btn-dark rounded-pill">Retour à la liste</a>
+            </div>
+        </div>
+        <?php
+    }
+
+    public function afficherBilanInventaire($stocks, $historique, $stats, $id_buvette, $token) {
+        ?>
+        <div class="container mt-5 pt-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="font-handwritten mb-0">Bilan Inventaire</h2>
+                <a href="index.php?module=gestionnaire&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-secondary rounded-pill">
+                    ← Retour
+                </a>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-lg rounded-4 p-4 bg-primary text-white">
+                        <h6 class="text-uppercase small mb-1" style="opacity: 0.8;">Valeur Totale</h6>
+                        <h2 class="fw-bold mb-0"><?= number_format($stats['valeur_totale'], 2) ?> €</h2>
+                        <small style="opacity: 0.8;"><?= $stats['total_produits'] ?> produits</small>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-4">
+                        <h6 class="text-uppercase small text-muted mb-1">Total Unités</h6>
+                        <h3 class="fw-bold mb-0"><?= number_format($stats['total_unites']) ?></h3>
+                        <small class="text-muted">En stock</small>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 <?= $stats['alertes'] > 0 ? 'bg-warning bg-opacity-10' : '' ?>">
+                        <h6 class="text-uppercase small text-muted mb-1">Alertes Stock</h6>
+                        <h3 class="fw-bold text-warning mb-0"><?= $stats['alertes'] ?></h3>
+                        <small class="text-muted">Produits en alerte</small>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 <?= $stats['ruptures'] > 0 ? 'bg-danger bg-opacity-10' : '' ?>">
+                        <h6 class="text-uppercase small text-muted mb-1">Ruptures</h6>
+                        <h3 class="fw-bold text-danger mb-0"><?= $stats['ruptures'] ?></h3>
+                        <small class="text-muted">Produits épuisés</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulaire d'ajustement de stock -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold mb-0">Ajuster un stock</h4>
+                </div>
+
+                <form action="index.php?module=gestionnaire&action=ajuster_stock&id_buvette=<?= $id_buvette ?>" method="POST">
+                    <input type="hidden" name="csrf_token" value="<?= $token ?>">
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold fs-6">Produit</label>
+                            <select name="id_produit" class="form-select rounded-pill fs-6" required>
+                                <option value="">Sélectionner un produit</option>
+                                <?php foreach($stocks as $s): ?>
+                                    <option value="<?= $s['id_produit'] ?>"><?= htmlspecialchars($s['nom_produit']) ?> (Stock: <?= $s['quantite'] ?>)</option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold fs-6">Type</label>
+                            <select name="type_changement" class="form-select rounded-pill fs-6" required>
+                                <option value="Entrée">Entrée (+)</option>
+                                <option value="Sortie">Sortie (-)</option>
+                                <option value="Perte">Perte</option>
+                                <option value="Correction">Correction</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold fs-6">Quantité</label>
+                            <input type="number" name="quantite" class="form-control rounded-pill fs-6" min="1" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold fs-6">Commentaire</label>
+                            <input type="text" name="commentaire" class="form-control rounded-pill fs-6" placeholder="Raison de l'ajustement" required>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary rounded-pill fs-5 px-4">Valider l'ajustement</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tableau des stocks -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h4 class="fw-bold mb-4">État des stocks</h4>
+                <div class="table-responsive">
+                    <table class="table align-middle fs-6">
+                        <thead class="table-light">
+                        <tr>
+                            <th style="width: 90px;">Image</th>
+                            <th>Produit</th>
+                            <th>Type</th>
+                            <th class="text-center">Quantité</th>
+                            <th class="text-center">Seuil</th>
+                            <th>Statut</th>
+                            <th class="text-end">Valeur Stock</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach($stocks as $s):
+                            $badgeClass = 'bg-success';
+                            $badgeText = 'OK';
+                            if($s['statut'] === 'Rupture') {
+                                $badgeClass = 'bg-danger';
+                                $badgeText = 'Rupture';
+                            } elseif($s['statut'] === 'Alerte') {
+                                $badgeClass = 'bg-warning';
+                                $badgeText = 'Alerte';
+                            }
+                            ?>
+                            <tr>
+                                <td>
+                                    <img src="public/img/produits/<?= htmlspecialchars($s['image_produit']) ?>"
+                                         alt="<?= htmlspecialchars($s['nom_produit']) ?>"
+                                         class="rounded"
+                                         style="width: 70px; height: 70px; object-fit: cover;">
+                                </td>
+                                <td>
+                                    <div class="fw-bold fs-5"><?= htmlspecialchars($s['nom_produit']) ?></div>
+                                    <small class="text-muted fs-6"><?= number_format($s['prix_produit'], 2) ?> €/unité</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark rounded-pill fs-6">
+                                        <?= htmlspecialchars($s['type_produit'] ?: 'Non défini') ?>
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="fw-bold fs-4"><?= $s['quantite'] ?></span>
+                                </td>
+                                <td class="text-center">
+                                    <small class="text-muted fs-6"><?= $s['seuil_alerte'] ?></small>
+                                </td>
+                                <td>
+                                    <span class="badge <?= $badgeClass ?> rounded-pill fs-6">
+                                        <?= $badgeText ?>
+                                    </span>
+                                </td>
+                                <td class="text-end fw-bold fs-5">
+                                    <?= number_format($s['valeur_stock'], 2) ?> €
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Historique des mouvements -->
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h4 class="fw-bold mb-4">Historique des mouvements (30 derniers)</h4>
+                <div class="table-responsive">
+                    <table class="table align-middle fs-6">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Produit</th>
+                            <th class="text-center">Quantité</th>
+                            <th>Commentaire</th>
+                            <th>Par</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php if(empty($historique)): ?>
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    Aucun mouvement enregistré
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach($historique as $h):
+                                $badgeClass = 'bg-info';
+                                $signe = '';
+
+                                if($h['type_changement'] === 'Entrée') {
+                                    $badgeClass = 'bg-success';
+                                    $signe = '+';
+                                } elseif($h['type_changement'] === 'Sortie') {
+                                    $badgeClass = 'bg-primary';
+                                    $signe = '-';
+                                } elseif($h['type_changement'] === 'Perte') {
+                                    $badgeClass = 'bg-danger';
+                                    $signe = '-';
+                                }
+                                ?>
+                                <tr>
+                                    <td><?= date('d/m/Y', strtotime($h['date_changement'])) ?></td>
+                                    <td>
+                                        <span class="badge <?= $badgeClass ?> rounded-pill fs-6">
+                                            <?= htmlspecialchars($h['type_changement']) ?>
+                                        </span>
+                                    </td>
+                                    <td><?= htmlspecialchars($h['nom_produit']) ?></td>
+                                    <td class="text-center fw-bold fs-5">
+                                        <?= $signe ?><?= abs($h['quantite']) ?>
+                                    </td>
+                                    <td><?= htmlspecialchars($h['commentaire']) ?></td>
+                                    <td>
+                                        <small class="text-muted fs-6">
+                                            <?= htmlspecialchars($h['prenom']) ?> <?= htmlspecialchars($h['nom']) ?>
+                                        </small>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
         <?php
