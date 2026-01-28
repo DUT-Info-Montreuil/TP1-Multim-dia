@@ -140,6 +140,36 @@ class ModeleCompte
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    private function purgerHistoriqueCommandes($idUser)
+    {
+        try {
+            $this->pdo->beginTransaction();
+
+            $stmt = $this->pdo->prepare("SELECT id_commande FROM commande
+                WHERE id_utilisateur = ?
+                AND statut != 'En cours'
+                AND date_commande < DATE_SUB(NOW(), INTERVAL 1 MONTH)");
+            $stmt->execute([$idUser]);
+            $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            if (!empty($ids)) {
+                $placeholders = implode(',', array_fill(0, count($ids), '?'));
+                $delNotif = $this->pdo->prepare("DELETE FROM notification_validation WHERE id_commande IN ($placeholders)");
+                $delNotif->execute($ids);
+
+                $delLignes = $this->pdo->prepare("DELETE FROM ligne_commande WHERE id_commande IN ($placeholders)");
+                $delLignes->execute($ids);
+
+                $delCmd = $this->pdo->prepare("DELETE FROM commande WHERE id_commande IN ($placeholders)");
+                $delCmd->execute($ids);
+            }
+
+            $this->pdo->commit();
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+        }
+    }
     public function getHistorique($idUser)
     {
         $stmt = $this->pdo->prepare("SELECT c.*, b.nom as nom_buvette, 

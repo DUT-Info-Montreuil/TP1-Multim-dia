@@ -92,7 +92,14 @@ class VueGestionnaire {
                             <div class="row g-4">
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold">Stock actuel</label>
-                                    <input type="number" name="quantite" class="form-control border-dark text-center fw-bold" value="<?= $produit['quantite'] ?>" required>
+                                    <input type="number" class="form-control border-dark text-center fw-bold bg-light" value="<?= $produit['quantite'] ?>" disabled>
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="bi bi-info-circle"></i>
+                                        Pour ajuster le stock, rendez-vous dans
+                                        <a href="index.php?module=gestionnaire&action=inventaire&id_buvette=<?= $id_buvette ?>" class="text-decoration-none fw-bold">
+                                            Bilan Inventaire
+                                        </a>
+                                    </small>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold">Prix (€)</label>
@@ -164,14 +171,14 @@ class VueGestionnaire {
                     <a href="index.php?module=gestionnaire&action=fournisseurs&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-primary rounded-pill">
                         <i class="bi bi-truck"></i> Fournisseurs
                     </a>
-                    <a href="index.php?module=gestionnaire&action=commandes_fournisseurs&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-info rounded-pill">
-                        <i class="bi bi-box-seam"></i> Commandes
-                    </a>
                     <a href="index.php?module=gestionnaire&action=tresorerie&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-success rounded-pill">
                         <i class="bi bi-cash-coin"></i> Trésorerie
                     </a>
                     <a href="index.php?module=gestionnaire&action=fidelite&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-warning rounded-pill">
                         <i class="bi bi-star-fill"></i> Fidélité
+                    </a>
+                    <a href="index.php?module=gestionnaire&action=inventaire&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-secondary rounded-pill">
+                        <i class="bi bi-clipboard-data"></i> Bilan Inventaire
                     </a>
                 </div>
             </div>
@@ -449,7 +456,6 @@ class VueGestionnaire {
             </div>
 
             <div class="mt-4 d-flex gap-2">
-                <a href="index.php?module=gestionnaire&action=commander&id_fournisseur=<?= $fournisseur['id_fournisseur'] ?>&id_buvette=<?= $id_buvette ?>" class="btn btn-primary rounded-pill">Passer une commande</a>
                 <a href="index.php?module=gestionnaire&action=fournisseurs&id_buvette=<?= $id_buvette ?>" class="btn btn-dark rounded-pill">Retour</a>
             </div>
         </div>
@@ -507,274 +513,6 @@ class VueGestionnaire {
     }
 
     // ==================== COMMANDES FOURNISSEURS ====================
-    public function afficherFormulaireCommande($fournisseur, $produits, $id_buvette, $token) {
-        ?>
-        <div class="container mt-5 pt-5">
-            <h2 class="font-handwritten mb-4">Commander chez <?= htmlspecialchars($fournisseur['nom_fournisseur']) ?></h2>
-
-            <form action="index.php?module=gestionnaire&action=valider_commande&id_buvette=<?= $id_buvette ?>" method="POST">
-                <input type="hidden" name="csrf_token" value="<?= $token ?>">
-                <input type="hidden" name="id_fournisseur" value="<?= $fournisseur['id_fournisseur'] ?>">
-
-                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
-                    <h5 class="fw-bold mb-3">Sélectionnez les produits</h5>
-                    <div class="table-responsive">
-                        <table class="table align-middle">
-                            <thead class="table-light">
-                            <tr>
-                                <th>Commander</th>
-                                <th>Produit</th>
-                                <th>Prix unitaire</th>
-                                <th>Qté min</th>
-                                <th>Quantité</th>
-                                <th class="text-end">Total</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <?php foreach($produits as $p): ?>
-                                <tr>
-                                    <td>
-                                        <input type="checkbox" name="produits[<?= $p['id_produit'] ?>][commander]" class="form-check-input product-checkbox" data-id="<?= $p['id_produit'] ?>">
-                                    </td>
-                                    <td>
-                                        <strong><?= htmlspecialchars($p['nom_produit']) ?></strong>
-                                        <input type="hidden" name="produits[<?= $p['id_produit'] ?>][prix_achat]" value="<?= $p['prix_achat'] ?>">
-                                    </td>
-                                    <td><?= number_format($p['prix_achat'], 2) ?> €</td>
-                                    <td><span class="badge bg-secondary"><?= $p['quantite_minimum'] ?></span></td>
-                                    <td>
-                                        <input type="number" name="produits[<?= $p['id_produit'] ?>][quantite]" class="form-control product-quantity" data-id="<?= $p['id_produit'] ?>" data-prix="<?= $p['prix_achat'] ?>" min="<?= $p['quantite_minimum'] ?>" value="<?= $p['quantite_minimum'] ?>" style="width: 100px;">
-                                    </td>
-                                    <td class="text-end fw-bold product-total" data-id="<?= $p['id_produit'] ?>">0.00 €</td>
-                                </tr>
-                            <?php endforeach; ?>
-                            </tbody>
-                            <tfoot>
-                            <tr class="table-dark">
-                                <td colspan="5" class="text-end fw-bold">TOTAL COMMANDE:</td>
-                                <td class="text-end fw-bold" id="totalCommande">0.00 €</td>
-                            </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
-                    <label class="form-label fw-bold">Notes / Instructions spéciales</label>
-                    <textarea name="notes" class="form-control rounded-4" rows="3" placeholder="Ex: Livraison à partir de 14h..."></textarea>
-                </div>
-
-                <div class="text-end">
-                    <a href="index.php?module=gestionnaire&action=fournisseurs&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-secondary rounded-pill px-4 me-2">Annuler</a>
-                    <button type="submit" class="btn btn-primary rounded-pill px-5">Valider la commande</button>
-                </div>
-            </form>
-        </div>
-
-        <script>
-            function calculerTotal() {
-                let total = 0;
-                document.querySelectorAll('.product-checkbox').forEach(cb => {
-                    if (cb.checked) {
-                        const id = cb.getAttribute('data-id');
-                        const qtyInput = document.querySelector(`.product-quantity[data-id="${id}"]`);
-                        const prix = parseFloat(qtyInput.getAttribute('data-prix'));
-                        const qty = parseInt(qtyInput.value) || 0;
-                        const sousTotal = prix * qty;
-
-                        document.querySelector(`.product-total[data-id="${id}"]`).textContent = sousTotal.toFixed(2) + ' €';
-                        total += sousTotal;
-                    } else {
-                        const id = cb.getAttribute('data-id');
-                        document.querySelector(`.product-total[data-id="${id}"]`).textContent = '0.00 €';
-                    }
-                });
-                document.getElementById('totalCommande').textContent = total.toFixed(2) + ' €';
-            }
-
-            document.querySelectorAll('.product-checkbox, .product-quantity').forEach(elem => {
-                elem.addEventListener('change', calculerTotal);
-                elem.addEventListener('input', calculerTotal);
-            });
-
-            calculerTotal();
-        </script>
-        <?php
-    }
-
-    public function afficherListeCommandesFournisseurs($commandes, $id_buvette, $statut_filtre) {
-        ?>
-        <div class="container mt-5 pt-5">
-            <h2 class="font-handwritten mb-4">Commandes Fournisseurs</h2>
-
-            <div class="mb-4 d-flex gap-2">
-                <a href="index.php?module=gestionnaire&action=commandes_fournisseurs&id_buvette=<?= $id_buvette ?>" class="btn <?= !$statut_filtre ? 'btn-dark' : 'btn-outline-dark' ?> rounded-pill">Toutes</a>
-                <a href="index.php?module=gestionnaire&action=commandes_fournisseurs&id_buvette=<?= $id_buvette ?>&statut=En attente" class="btn <?= $statut_filtre == 'En attente' ? 'btn-warning' : 'btn-outline-warning' ?> rounded-pill">En attente</a>
-                <a href="index.php?module=gestionnaire&action=commandes_fournisseurs&id_buvette=<?= $id_buvette ?>&statut=Validée" class="btn <?= $statut_filtre == 'Validée' ? 'btn-info' : 'btn-outline-info' ?> rounded-pill">Validées</a>
-                <a href="index.php?module=gestionnaire&action=commandes_fournisseurs&id_buvette=<?= $id_buvette ?>&statut=Expédiée" class="btn <?= $statut_filtre == 'Expédiée' ? 'btn-primary' : 'btn-outline-primary' ?> rounded-pill">Expédiées</a>
-                <a href="index.php?module=gestionnaire&action=commandes_fournisseurs&id_buvette=<?= $id_buvette ?>&statut=Livrée" class="btn <?= $statut_filtre == 'Livrée' ? 'btn-success' : 'btn-outline-success' ?> rounded-pill">Livrées</a>
-            </div>
-
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-dark">
-                    <tr>
-                        <th>N° Commande</th>
-                        <th>Fournisseur</th>
-                        <th>Date</th>
-                        <th>Livraison prévue</th>
-                        <th>Montant</th>
-                        <th>Statut</th>
-                        <th>Action</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <?php if (empty($commandes)): ?>
-                        <tr>
-                            <td colspan="7" class="text-center text-muted py-5">
-                                <i class="bi bi-inbox display-1 d-block mb-3"></i>
-                                <h5>Aucune commande pour le moment</h5>
-                                <p>Commencez par passer une commande auprès d'un fournisseur</p>
-                                <a href="index.php?module=gestionnaire&action=fournisseurs&id_buvette=<?= $id_buvette ?>" class="btn btn-primary rounded-pill mt-2">
-                                    <i class="bi bi-truck"></i> Voir les fournisseurs
-                                </a>
-                            </td>
-                        </tr>
-                    <?php else: ?>
-                        <?php foreach($commandes as $c):
-                            $badgeClass = match($c['statut']) {
-                                'En attente' => 'bg-warning',
-                                'Validée' => 'bg-info',
-                                'Expédiée' => 'bg-primary',
-                                'Livrée' => 'bg-success',
-                                'Annulée' => 'bg-danger',
-                                default => 'bg-secondary'
-                            };
-                            ?>
-                            <tr>
-                                <td><strong><?= htmlspecialchars($c['numero_commande']) ?></strong></td>
-                                <td><?= htmlspecialchars($c['nom_fournisseur']) ?></td>
-                                <td><?= date('d/m/Y', strtotime($c['date_commande'])) ?></td>
-                                <td><?= $c['date_livraison_prevue'] ? date('d/m/Y', strtotime($c['date_livraison_prevue'])) : '-' ?></td>
-                                <td class="fw-bold"><?= number_format($c['montant_total'], 2) ?> €</td>
-                                <td><span class="badge <?= $badgeClass ?> rounded-pill"><?= $c['statut'] ?></span></td>
-                                <td>
-                                    <a href="index.php?module=gestionnaire&action=details_commande_fournisseur&id_commande=<?= $c['id_commande_fournisseur'] ?>&id_buvette=<?= $id_buvette ?>" class="btn btn-sm btn-outline-dark rounded-pill">Détails</a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="mt-4">
-                <a href="index.php?module=gestionnaire&id_buvette=<?= $id_buvette ?>" class="btn btn-dark rounded-pill">Retour au tableau de bord</a>
-            </div>
-        </div>
-        <?php
-    }
-
-    public function afficherDetailsCommandeFournisseur($commande, $lignes, $id_buvette, $token) {
-        $badgeClass = match($commande['statut']) {
-            'En attente' => 'bg-warning',
-            'Validée' => 'bg-info',
-            'Expédiée' => 'bg-primary',
-            'Livrée' => 'bg-success',
-            'Annulée' => 'bg-danger',
-            default => 'bg-secondary'
-        };
-        ?>
-        <div class="container mt-5 pt-5">
-            <div class="card border-0 shadow-lg rounded-5 p-5 mb-4">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="font-handwritten mb-0">Commande <?= htmlspecialchars($commande['numero_commande']) ?></h2>
-                    <span class="badge <?= $badgeClass ?> rounded-pill px-4 py-2"><?= $commande['statut'] ?></span>
-                </div>
-
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <p><strong>Fournisseur:</strong> <?= htmlspecialchars($commande['nom_fournisseur']) ?></p>
-                        <p><strong>Email:</strong> <?= htmlspecialchars($commande['email']) ?></p>
-                        <p><strong>Téléphone:</strong> <?= htmlspecialchars($commande['telephone']) ?></p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>Date de commande:</strong> <?= date('d/m/Y H:i', strtotime($commande['date_commande'])) ?></p>
-                        <p><strong>Livraison prévue:</strong> <?= date('d/m/Y', strtotime($commande['date_livraison_prevue'])) ?></p>
-                        <?php if ($commande['date_livraison_reelle']): ?>
-                            <p><strong>Livraison réelle:</strong> <?= date('d/m/Y', strtotime($commande['date_livraison_reelle'])) ?></p>
-                        <?php endif; ?>
-                        <p><strong>Commandé par:</strong> <?= htmlspecialchars($commande['nom'].' '.$commande['prenom']) ?></p>
-                    </div>
-                </div>
-
-                <?php if ($commande['notes']): ?>
-                    <div class="alert alert-info rounded-4">
-                        <strong>Notes:</strong> <?= htmlspecialchars($commande['notes']) ?>
-                    </div>
-                <?php endif; ?>
-
-                <h5 class="fw-bold mb-3">Détails de la commande</h5>
-                <div class="table-responsive">
-                    <table class="table align-middle">
-                        <thead class="table-light">
-                        <tr>
-                            <th>Produit</th>
-                            <th>Quantité</th>
-                            <th>Prix unitaire</th>
-                            <th class="text-end">Total</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php foreach($lignes as $l): ?>
-                            <tr>
-                                <td>
-                                    <img src="public/img/produits/<?= htmlspecialchars($l['image_produit']) ?>" style="height: 40px; object-fit: contain;" class="me-2">
-                                    <strong><?= htmlspecialchars($l['nom_produit']) ?></strong>
-                                </td>
-                                <td><?= $l['quantite'] ?></td>
-                                <td><?= number_format($l['prix_unitaire'], 2) ?> €</td>
-                                <td class="text-end fw-bold"><?= number_format($l['quantite'] * $l['prix_unitaire'], 2) ?> €</td>
-                            </tr>
-                        <?php endforeach; ?>
-                        </tbody>
-                        <tfoot>
-                        <tr class="table-dark">
-                            <td colspan="3" class="text-end fw-bold">TOTAL:</td>
-                            <td class="text-end fw-bold"><?= number_format($commande['montant_total'], 2) ?> €</td>
-                        </tr>
-                        </tfoot>
-                    </table>
-                </div>
-
-                <div class="mt-4 d-flex gap-2">
-                    <?php if ($commande['statut'] === 'Expédiée'): ?>
-                        <form action="index.php?module=gestionnaire&action=valider_livraison&id_buvette=<?= $id_buvette ?>" method="POST" class="d-inline">
-                            <input type="hidden" name="csrf_token" value="<?= $token ?>">
-                            <input type="hidden" name="id_commande" value="<?= $commande['id_commande_fournisseur'] ?>">
-                            <button type="submit" class="btn btn-success rounded-pill" onclick="return confirm('Confirmer la réception ? Les stocks seront mis à jour.');">
-                                <i class="bi bi-check-circle"></i> Valider la réception
-                            </button>
-                        </form>
-                    <?php endif; ?>
-
-                    <?php if ($commande['statut'] === 'En attente'): ?>
-                        <a href="index.php?module=gestionnaire&action=changer_statut_commande&id_commande=<?= $commande['id_commande_fournisseur'] ?>&statut=Validée&id_buvette=<?= $id_buvette ?>" class="btn btn-info rounded-pill">Valider</a>
-                        <a href="index.php?module=gestionnaire&action=changer_statut_commande&id_commande=<?= $commande['id_commande_fournisseur'] ?>&statut=Annulée&id_buvette=<?= $id_buvette ?>" class="btn btn-danger rounded-pill" onclick="return confirm('Annuler cette commande ?');">Annuler</a>
-                    <?php endif; ?>
-
-                    <?php if ($commande['statut'] === 'Validée'): ?>
-                        <a href="index.php?module=gestionnaire&action=changer_statut_commande&id_commande=<?= $commande['id_commande_fournisseur'] ?>&statut=Expédiée&id_buvette=<?= $id_buvette ?>" class="btn btn-primary rounded-pill">Marquer comme expédiée</a>
-                    <?php endif; ?>
-
-                    <a href="index.php?module=gestionnaire&action=commandes_fournisseurs&id_buvette=<?= $id_buvette ?>" class="btn btn-dark rounded-pill">Retour</a>
-                </div>
-            </div>
-        </div>
-        <?php
-    }
-
-    // ==================== TRÉSORERIE ====================
     public function afficherTresorerie($tresorerie, $mouvements, $stats, $id_buvette, $token) {
         ?>
         <div class="container mt-5 pt-5">
@@ -1111,6 +849,229 @@ class VueGestionnaire {
 
             <div class="mt-4">
                 <a href="index.php?module=gestionnaire&action=fidelite&id_buvette=<?= $id_buvette ?>" class="btn btn-dark rounded-pill">Retour à la liste</a>
+            </div>
+        </div>
+        <?php
+    }
+
+    public function afficherBilanInventaire($stocks, $historique, $stats, $id_buvette, $token) {
+        ?>
+        <div class="container mt-5 pt-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="font-handwritten mb-0">Bilan Inventaire</h2>
+                <a href="index.php?module=gestionnaire&id_buvette=<?= $id_buvette ?>" class="btn btn-outline-secondary rounded-pill">
+                    ← Retour
+                </a>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-lg rounded-4 p-4 bg-primary text-white">
+                        <h6 class="text-uppercase small mb-1" style="opacity: 0.8;">Valeur Totale</h6>
+                        <h2 class="fw-bold mb-0"><?= number_format($stats['valeur_totale'], 2) ?> €</h2>
+                        <small style="opacity: 0.8;"><?= $stats['total_produits'] ?> produits</small>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-4">
+                        <h6 class="text-uppercase small text-muted mb-1">Total Unités</h6>
+                        <h3 class="fw-bold mb-0"><?= number_format($stats['total_unites']) ?></h3>
+                        <small class="text-muted">En stock</small>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 <?= $stats['alertes'] > 0 ? 'bg-warning bg-opacity-10' : '' ?>">
+                        <h6 class="text-uppercase small text-muted mb-1">Alertes Stock</h6>
+                        <h3 class="fw-bold text-warning mb-0"><?= $stats['alertes'] ?></h3>
+                        <small class="text-muted">Produits en alerte</small>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 <?= $stats['ruptures'] > 0 ? 'bg-danger bg-opacity-10' : '' ?>">
+                        <h6 class="text-uppercase small text-muted mb-1">Ruptures</h6>
+                        <h3 class="fw-bold text-danger mb-0"><?= $stats['ruptures'] ?></h3>
+                        <small class="text-muted">Produits épuisés</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulaire d'ajustement de stock -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold mb-0">Ajuster un stock</h4>
+                </div>
+
+                <form action="index.php?module=gestionnaire&action=ajuster_stock&id_buvette=<?= $id_buvette ?>" method="POST">
+                    <input type="hidden" name="csrf_token" value="<?= $token ?>">
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold fs-6">Produit</label>
+                            <select name="id_produit" class="form-select rounded-pill fs-6" required>
+                                <option value="">Sélectionner un produit</option>
+                                <?php foreach($stocks as $s): ?>
+                                    <option value="<?= $s['id_produit'] ?>"><?= htmlspecialchars($s['nom_produit']) ?> (Stock: <?= $s['quantite'] ?>)</option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold fs-6">Type</label>
+                            <select name="type_changement" class="form-select rounded-pill fs-6" required>
+                                <option value="Entrée">Entrée (+)</option>
+                                <option value="Sortie">Sortie (-)</option>
+                                <option value="Perte">Perte</option>
+                                <option value="Correction">Correction</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold fs-6">Quantité</label>
+                            <input type="number" name="quantite" class="form-control rounded-pill fs-6" min="1" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold fs-6">Commentaire</label>
+                            <input type="text" name="commentaire" class="form-control rounded-pill fs-6" placeholder="Raison de l'ajustement" required>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary rounded-pill fs-5 px-4">Valider l'ajustement</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tableau des stocks -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h4 class="fw-bold mb-4">État des stocks</h4>
+                <div class="table-responsive">
+                    <table class="table align-middle fs-6">
+                        <thead class="table-light">
+                        <tr>
+                            <th style="width: 90px;">Image</th>
+                            <th>Produit</th>
+                            <th>Type</th>
+                            <th class="text-center">Quantité</th>
+                            <th class="text-center">Seuil</th>
+                            <th>Statut</th>
+                            <th class="text-end">Valeur Stock</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach($stocks as $s):
+                            $badgeClass = 'bg-success';
+                            $badgeText = 'OK';
+                            if($s['statut'] === 'Rupture') {
+                                $badgeClass = 'bg-danger';
+                                $badgeText = 'Rupture';
+                            } elseif($s['statut'] === 'Alerte') {
+                                $badgeClass = 'bg-warning';
+                                $badgeText = 'Alerte';
+                            }
+                            ?>
+                            <tr>
+                                <td>
+                                    <img src="public/img/produits/<?= htmlspecialchars($s['image_produit']) ?>"
+                                         alt="<?= htmlspecialchars($s['nom_produit']) ?>"
+                                         class="rounded"
+                                         style="width: 70px; height: 70px; object-fit: cover;">
+                                </td>
+                                <td>
+                                    <div class="fw-bold fs-5"><?= htmlspecialchars($s['nom_produit']) ?></div>
+                                    <small class="text-muted fs-6"><?= number_format($s['prix_produit'], 2) ?> €/unité</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark rounded-pill fs-6">
+                                        <?= htmlspecialchars($s['type_produit'] ?: 'Non défini') ?>
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="fw-bold fs-4"><?= $s['quantite'] ?></span>
+                                </td>
+                                <td class="text-center">
+                                    <small class="text-muted fs-6"><?= $s['seuil_alerte'] ?></small>
+                                </td>
+                                <td>
+                                    <span class="badge <?= $badgeClass ?> rounded-pill fs-6">
+                                        <?= $badgeText ?>
+                                    </span>
+                                </td>
+                                <td class="text-end fw-bold fs-5">
+                                    <?= number_format($s['valeur_stock'], 2) ?> €
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Historique des mouvements -->
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h4 class="fw-bold mb-4">Historique des mouvements (30 derniers)</h4>
+                <div class="table-responsive">
+                    <table class="table align-middle fs-6">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Produit</th>
+                            <th class="text-center">Quantité</th>
+                            <th>Commentaire</th>
+                            <th>Par</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php if(empty($historique)): ?>
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    Aucun mouvement enregistré
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach($historique as $h):
+                                $badgeClass = 'bg-info';
+                                $signe = '';
+
+                                if($h['type_changement'] === 'Entrée') {
+                                    $badgeClass = 'bg-success';
+                                    $signe = '+';
+                                } elseif($h['type_changement'] === 'Sortie') {
+                                    $badgeClass = 'bg-primary';
+                                    $signe = '-';
+                                } elseif($h['type_changement'] === 'Perte') {
+                                    $badgeClass = 'bg-danger';
+                                    $signe = '-';
+                                }
+                                ?>
+                                <tr>
+                                    <td><?= date('d/m/Y', strtotime($h['date_changement'])) ?></td>
+                                    <td>
+                                        <span class="badge <?= $badgeClass ?> rounded-pill fs-6">
+                                            <?= htmlspecialchars($h['type_changement']) ?>
+                                        </span>
+                                    </td>
+                                    <td><?= htmlspecialchars($h['nom_produit']) ?></td>
+                                    <td class="text-center fw-bold fs-5">
+                                        <?= $signe ?><?= abs($h['quantite']) ?>
+                                    </td>
+                                    <td><?= htmlspecialchars($h['commentaire']) ?></td>
+                                    <td>
+                                        <small class="text-muted fs-6">
+                                            <?= htmlspecialchars($h['prenom']) ?> <?= htmlspecialchars($h['nom']) ?>
+                                        </small>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
         <?php

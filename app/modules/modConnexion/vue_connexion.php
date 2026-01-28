@@ -77,7 +77,15 @@ class VueConnexion {
                     </div>
                     <div class="mb-4 text-center">
                         <label for="password" class="form-label">Mot de passe</label>
-                        <input type="password" class="form-control rounded-pill" name="password" required>
+                        <input type="password"
+                               class="form-control rounded-pill"
+                               name="password"
+                               minlength="11"
+                               pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{11,}"
+                               title="Minimum 11 caractères, 1 majuscule, 1 minuscule, 1 chiffre, 1 caractère spécial."
+                               autocomplete="new-password"
+                               required>
+                        <small class="text-muted d-block mt-1">Minimum 11 caractères, 1 majuscule, 1 minuscule, 1 chiffre, 1 caractère spécial.</small>
                     </div>
                     <div class="text-center">
                         <button type="submit" class="btn bg-custom-dark rounded-pill px-4 mb-3 text-white">S'inscrire</button>

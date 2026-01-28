@@ -97,7 +97,7 @@ class ContPanier
                         header('Location: index.php?module=panier&action=afficher');
                     } else {
                         $this->modele->validerCommande($idUser, $idCommande, $total);
-                        $_SESSION['flash'] = "Commande payée et validée avec succès !";
+                        $_SESSION['flash'] = "Commande envoyée pour confirmation.";
                         header('Location: index.php?module=detailsCommande&action=afficher&id_commande=' . $idCommande);
                     }
                 } else {

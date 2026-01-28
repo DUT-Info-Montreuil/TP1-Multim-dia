@@ -13,14 +13,17 @@ class VueDetailsCommande
         $est_paye = $commande['est_paye'];
 
         $steps = [
+            'En attente confirmation' => 1,
+            'Attente Validation' => 1,
             'En attente' => 1,
+            'Payé' => 1,
             'Préparation' => 2,
             'Arrivé' => 3,
             'Parti' => 4
 
         ];
         $currentStep = isset($steps[$statut]) ? $steps[$statut] : 0;
-        $isAnnulee = ($statut === 'Annulée');
+        $isAnnulee = ($statut === 'Annulée' || $statut === 'Annulé');
 
         ?>
         <div class="container mt-5 pt-5">
@@ -67,10 +70,22 @@ class VueDetailsCommande
 
                                 <div class="mt-4">
                                     <?php if($currentStep == 1): ?>
-                                        <div class="badge bg-warning text-dark fs-6 rounded-pill px-3 py-2 animate-pulse">
-                                            <i class="bi bi-hourglass-split me-2"></i>En attente de validation
-                                        </div>
-                                        <p class="text-muted small mt-2">La buvette a bien reçu votre commande.</p>
+                                        <?php if ($statut === 'En attente confirmation'): ?>
+                                            <div class="badge bg-warning text-dark fs-6 rounded-pill px-3 py-2 animate-pulse">
+                                                <i class="bi bi-hourglass-split me-2"></i>En attente de confirmation
+                                            </div>
+                                            <p class="text-muted small mt-2">Votre commande doit être confirmée par la buvette.</p>
+                                        <?php elseif ($statut === 'Attente Validation'): ?>
+                                            <div class="badge bg-warning text-dark fs-6 rounded-pill px-3 py-2 animate-pulse">
+                                                <i class="bi bi-hourglass-split me-2"></i>En attente de paiement
+                                            </div>
+                                            <p class="text-muted small mt-2">Veuillez valider le paiement dans vos notifications.</p>
+                                        <?php else: ?>
+                                            <div class="badge bg-info text-dark fs-6 rounded-pill px-3 py-2">
+                                                <i class="bi bi-check-circle me-2"></i>Commande confirmée
+                                            </div>
+                                            <p class="text-muted small mt-2">Votre commande va être prise en préparation.</p>
+                                        <?php endif; ?>
 
                                     <?php elseif($currentStep == 2): ?>
                                         <div class="badge bg-info text-dark fs-6 rounded-pill px-3 py-2">

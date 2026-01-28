@@ -46,10 +46,6 @@ class ContCompte
                 $this->traiterModificationMdp($idUser);
                 break;
 
-            case 'ajouterSolde':
-                $this->traiterAjoutSolde($idUser);
-                break;
-
             case 'historique':
             default:
                 $this->afficherHistorique($idUser);
@@ -144,25 +140,6 @@ class ContCompte
                 $this->vue->afficherMonCompte($_SESSION['user'], $mesBuvettes, "Mot de passe modifié avec succès !", "success");
             } else {
                 $this->vue->afficherMonCompte($_SESSION['user'], $mesBuvettes, "L'ancien mot de passe est incorrect.", "danger");
-            }
-        } else {
-            $this->afficherProfil($idUser);
-        }
-    }
-
-    private function traiterAjoutSolde($idUser)
-    {
-        if (isset($_POST['id_buvette'], $_POST['montant'])) {
-            $idBuvette = (int) $_POST['id_buvette'];
-            $montant = (float) $_POST['montant'];
-
-            if ($montant > 0) {
-                $this->modele->ajouterSolde($idUser, $idBuvette, $montant);
-                $mesBuvettes = $this->modele->getBuvettesAdherent();
-                $this->vue->afficherMonCompte($_SESSION['user'], $mesBuvettes, "Votre compte a été crédité de " . number_format($montant, 2) . " € !", "success");
-            } else {
-                $mesBuvettes = $this->modele->getBuvettesAdherent();
-                $this->vue->afficherMonCompte($_SESSION['user'], $mesBuvettes, "Montant invalide.", "danger");
             }
         } else {
             $this->afficherProfil($idUser);

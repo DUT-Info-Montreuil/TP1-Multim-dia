@@ -39,7 +39,6 @@ class ContGestionnaire {
         }
 
         switch($action) {
-            // ==================== GESTION STOCK ====================
             case 'liste':
             default:
                 $filtrerAlertes = isset($_GET['alerte']);
@@ -81,12 +80,10 @@ class ContGestionnaire {
                 }
                 $id_produit = $_GET['id'];
 
-                $success = $this->modele->modifierProduitEtStock(
+                $success = $this->modele->modifierProduitSansStock(
                     $id_produit,
-                    $id_buvette,
                     $_POST['prix_produit'],
                     $_POST['description'],
-                    $_POST['quantite'],
                     $_POST['type_produit']
                 );
 
@@ -97,7 +94,6 @@ class ContGestionnaire {
                 header("Location: index.php?module=gestionnaire&action=details&id=$id_produit&id_buvette=$id_buvette");
                 exit();
 
-            // ==================== GESTION ADHÉSIONS ====================
             case 'gerer_adhesions':
                 $demandes = $this->modele->getDemandesEnAttente($id_buvette);
                 $membres = $this->modele->getMembresAcceptes($id_buvette);
@@ -128,7 +124,6 @@ class ContGestionnaire {
                 header("Location: index.php?module=gestionnaire&action=gerer_adhesions&id_buvette=$id_buvette");
                 exit();
 
-            // ==================== FOURNISSEURS ====================
             case 'fournisseurs':
                 $fournisseurs = $this->modele->getAllFournisseurs();
                 $this->vue->afficherListeFournisseurs($fournisseurs, $id_buvette, $token);
@@ -167,93 +162,7 @@ class ContGestionnaire {
                 header("Location: index.php?module=gestionnaire&action=fournisseurs&id_buvette=$id_buvette");
                 exit();
 
-            // ==================== COMMANDES FOURNISSEURS ====================
-            case 'commander':
-                $id_fournisseur = $_GET['id_fournisseur'] ?? null;
-                if ($id_fournisseur) {
-                    $fournisseur = $this->modele->getFournisseurById($id_fournisseur);
-                    $produits = $this->modele->getProduitsParFournisseur($id_fournisseur);
-                    $this->vue->afficherFormulaireCommande($fournisseur, $produits, $id_buvette, $token);
-                }
-                break;
 
-            case 'valider_commande':
-                if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
-                    die("CSRF Error");
-                }
-
-                $id_fournisseur = $_POST['id_fournisseur'];
-                $notes = $_POST['notes'] ?? '';
-
-                // Construction des lignes de commande
-                $lignes = [];
-                foreach ($_POST['produits'] as $id_produit => $data) {
-                    if (isset($data['commander']) && $data['quantite'] > 0) {
-                        $lignes[] = [
-                            'id_produit' => $id_produit,
-                            'quantite' => $data['quantite'],
-                            'prix_unitaire' => $data['prix_achat']
-                        ];
-                    }
-                }
-
-                if (!empty($lignes)) {
-                    try {
-                        $this->modele->creerCommandeFournisseur($id_fournisseur, $id_buvette, $id_user, $lignes, $notes);
-                        $_SESSION['notif'] = "Commande passée avec succès !";
-                    } catch (Exception $e) {
-                        $_SESSION['notif'] = "Erreur : " . $e->getMessage();
-                    }
-                } else {
-                    $_SESSION['notif'] = "Aucun produit sélectionné !";
-                }
-
-                header("Location: index.php?module=gestionnaire&action=commandes_fournisseurs&id_buvette=$id_buvette");
-                exit();
-
-            case 'commandes_fournisseurs':
-                $statut_filtre = $_GET['statut'] ?? null;
-                $commandes = $this->modele->getCommandesFournisseur($id_buvette, $statut_filtre);
-                $this->vue->afficherListeCommandesFournisseurs($commandes, $id_buvette, $statut_filtre);
-                break;
-
-            case 'details_commande_fournisseur':
-                $id_commande = $_GET['id_commande'] ?? null;
-                if ($id_commande) {
-                    $commande = $this->modele->getDetailsCommandeFournisseur($id_commande);
-                    $lignes = $this->modele->getLignesCommandeFournisseur($id_commande);
-                    $this->vue->afficherDetailsCommandeFournisseur($commande, $lignes, $id_buvette, $token);
-                }
-                break;
-
-            case 'valider_livraison':
-                if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
-                    die("CSRF Error");
-                }
-
-                $id_commande = $_POST['id_commande'];
-                try {
-                    $this->modele->validerLivraisonCommande($id_commande, $id_buvette);
-                    $_SESSION['notif'] = "Livraison validée ! Les stocks ont été mis à jour.";
-                } catch (Exception $e) {
-                    $_SESSION['notif'] = "Erreur : " . $e->getMessage();
-                }
-
-                header("Location: index.php?module=gestionnaire&action=details_commande_fournisseur&id_commande=$id_commande&id_buvette=$id_buvette");
-                exit();
-
-            case 'changer_statut_commande':
-                $id_commande = $_GET['id_commande'];
-                $nouveau_statut = $_GET['statut'];
-
-                if ($this->modele->changerStatutCommande($id_commande, $nouveau_statut)) {
-                    $_SESSION['notif'] = "Statut modifié !";
-                }
-
-                header("Location: index.php?module=gestionnaire&action=details_commande_fournisseur&id_commande=$id_commande&id_buvette=$id_buvette");
-                exit();
-
-            // ==================== TRÉSORERIE ====================
             case 'tresorerie':
                 $tresorerie = $this->modele->getTresorerie($id_buvette);
                 $mouvements = $this->modele->getMouvementsTresorerie($id_buvette);
@@ -283,7 +192,41 @@ class ContGestionnaire {
                 header("Location: index.php?module=gestionnaire&action=tresorerie&id_buvette=$id_buvette");
                 exit();
 
-            // ==================== FIDÉLITÉ ====================
+
+            case 'inventaire':
+                $stocks = $this->modele->getStocksDetailles($id_buvette);
+                $historique = $this->modele->getHistoriqueChangementsStock($id_buvette);
+                $stats = $this->modele->getStatsInventaire($id_buvette);
+                $this->vue->afficherBilanInventaire($stocks, $historique, $stats, $id_buvette, $token);
+                break;
+
+            case 'ajuster_stock':
+                if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
+                    die("CSRF Error");
+                }
+
+                $id_produit = $_POST['id_produit'];
+                $type = $_POST['type_changement'];
+                $quantite = (int)$_POST['quantite'];
+                $commentaire = $_POST['commentaire'];
+
+                try {
+                    $this->modele->ajusterStock(
+                        $id_buvette,
+                        $id_produit,
+                        $type,
+                        $quantite,
+                        $commentaire,
+                        $id_user
+                    );
+                    $_SESSION['notif'] = "Stock ajusté avec succès !";
+                } catch (Exception $e) {
+                    $_SESSION['notif'] = "Erreur : " . $e->getMessage();
+                }
+
+                header("Location: index.php?module=gestionnaire&action=inventaire&id_buvette=$id_buvette");
+                exit();
+
             case 'fidelite':
                 $clients = $this->modele->getAllClientsAvecPoints($id_buvette);
                 $this->vue->afficherGestionFidelite($clients, $id_buvette);

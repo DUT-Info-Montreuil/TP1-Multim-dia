@@ -13,6 +13,7 @@ class ModeleConnexion {
         SELECT u.*, r.nom_role 
         FROM utilisateur u
         LEFT JOIN affecter a ON u.id_utilisateur = a.id_utilisateur
+            AND (a.date_fin IS NULL OR a.date_fin >= CURDATE())
         LEFT JOIN role_utilisateur r ON a.id_role = r.id_role
         WHERE u.email = ?
         LIMIT 1

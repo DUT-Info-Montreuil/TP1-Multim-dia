@@ -16,7 +16,11 @@ class ModeleBuvettes {
 
     public function getBuvettesAdherent() {
         if (!isset($_SESSION['user']['id_utilisateur'])) return [];
-        $stmt = $this->pdo->prepare("SELECT * FROM affecter WHERE id_utilisateur = ?");
+        $stmt = $this->pdo->prepare("SELECT a.* FROM affecter a
+                INNER JOIN role_utilisateur r ON a.id_role = r.id_role
+                WHERE a.id_utilisateur = ?
+                AND r.nom_role = 'Client'
+                AND (a.date_fin IS NULL OR a.date_fin >= CURDATE())");
         $stmt->execute([$_SESSION['user']['id_utilisateur']]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -45,7 +49,8 @@ class ModeleBuvettes {
         if (!isset($_SESSION['user']['id_utilisateur'])) return [];
         $stmt = $this->pdo->prepare("SELECT * FROM affecter 
                 WHERE id_utilisateur = ? 
-                AND id_role IN (1, 2, 3)");
+                AND id_role IN (1, 2, 3)
+                AND (date_fin IS NULL OR date_fin >= CURDATE())");
         $stmt->execute([$_SESSION['user']['id_utilisateur']]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

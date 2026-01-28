@@ -34,9 +34,16 @@ class ModeleServeur {
         $stmt->execute([$nouveauStatut, $idCommande]);
     }
 
+    public function getStatutCommande($idCommande) {
+        $bdd = Connexion::getBdd();
+        $stmt = $bdd->prepare("SELECT statut FROM commande WHERE id_commande = ?");
+        $stmt->execute([$idCommande]);
+        return $stmt->fetchColumn();
+    }
+
     public function annulerCommande($idCommande) {
         $bdd = Connexion::getBdd();
-        $sql = "UPDATE commande SET statut = 'Annulé' WHERE id_commande = ?";
+        $sql = "UPDATE commande SET statut = 'Annulée' WHERE id_commande = ?";
         $stmt = $bdd->prepare($sql);
         $stmt->execute([$idCommande]);
 
@@ -44,6 +51,40 @@ class ModeleServeur {
         $sqlNotif = "UPDATE notification_validation SET est_vue = 1 WHERE id_commande = ?";
         $stmtNotif = $bdd->prepare($sqlNotif);
         $stmtNotif->execute([$idCommande]);
+    }
+
+    public function debiterCommandeSiNonPayee($idCommande) {
+        $bdd = Connexion::getBdd();
+        try {
+            $bdd->beginTransaction();
+
+            $stmt = $bdd->prepare("SELECT id_utilisateur, id_buvette, prix_total, est_paye 
+                    FROM commande WHERE id_commande = ?");
+            $stmt->execute([$idCommande]);
+            $commande = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$commande || (int)$commande['est_paye'] === 1) {
+                $bdd->commit();
+                return true;
+            }
+
+            $stmtDebit = $bdd->prepare("UPDATE solde SET solde = solde - ? WHERE id_utilisateur = ? AND id_buvette = ?");
+            $stmtDebit->execute([$commande['prix_total'], $commande['id_utilisateur'], $commande['id_buvette']]);
+
+            $stmtCmd = $bdd->prepare("UPDATE commande SET est_paye = 1 WHERE id_commande = ?");
+            $stmtCmd->execute([$idCommande]);
+
+            $descriptionCommande = "Paiement commande #" . $idCommande;
+            $stmtMvmt = $bdd->prepare("INSERT INTO mouvement_tresorerie (id_buvette, type_mouvement, montant, categorie, description, id_utilisateur, id_commande)
+                    VALUES (?, 'Entrée', ?, 'Vente', ?, ?, ?)");
+            $stmtMvmt->execute([$commande['id_buvette'], $commande['prix_total'], $descriptionCommande, $commande['id_utilisateur'], $idCommande]);
+
+            $bdd->commit();
+            return true;
+        } catch (Exception $e) {
+            $bdd->rollBack();
+            return false;
+        }
     }
 
     public function getTousLesProduits() {
