@@ -80,12 +80,10 @@ class ContGestionnaire {
                 }
                 $id_produit = $_GET['id'];
 
-                $success = $this->modele->modifierProduitEtStock(
+                $success = $this->modele->modifierProduitSansStock(
                     $id_produit,
-                    $id_buvette,
                     $_POST['prix_produit'],
                     $_POST['description'],
-                    $_POST['quantite'],
                     $_POST['type_produit']
                 );
 

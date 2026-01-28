@@ -92,7 +92,14 @@ class VueGestionnaire {
                             <div class="row g-4">
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold">Stock actuel</label>
-                                    <input type="number" name="quantite" class="form-control border-dark text-center fw-bold" value="<?= $produit['quantite'] ?>" required>
+                                    <input type="number" class="form-control border-dark text-center fw-bold bg-light" value="<?= $produit['quantite'] ?>" disabled>
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="bi bi-info-circle"></i>
+                                        Pour ajuster le stock, rendez-vous dans
+                                        <a href="index.php?module=gestionnaire&action=inventaire&id_buvette=<?= $id_buvette ?>" class="text-decoration-none fw-bold">
+                                            Bilan Inventaire
+                                        </a>
+                                    </small>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold">Prix (€)</label>

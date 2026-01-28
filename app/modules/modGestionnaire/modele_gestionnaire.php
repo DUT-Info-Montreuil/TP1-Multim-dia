@@ -672,4 +672,15 @@ class ModeleGestionnaire {
             throw $e;
         }
     }
+
+    public function modifierProduitSansStock($id_produit, $nouveau_prix, $nouvelle_description, $nouveau_type) {
+        $bdd = Connexion::getBdd();
+        try {
+            $req = $bdd->prepare("UPDATE produit SET prix_produit = ?, description = ?, type_produit = ? WHERE id_produit = ?");
+            $req->execute([$nouveau_prix, $nouvelle_description, $nouveau_type, $id_produit]);
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
 }
