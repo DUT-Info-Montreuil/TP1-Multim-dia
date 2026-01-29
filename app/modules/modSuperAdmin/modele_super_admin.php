@@ -96,9 +96,9 @@ class ModeleSuperAdmin {
         $stmt = $this->bdd->prepare("
         SELECT 
             b.*,
-            u.nom as gestionnaire_nom, 
-            u.prenom as gestionnaire_prenom,
-            u.id_utilisateur as gestionnaire_id
+            GROUP_CONCAT(DISTINCT CONCAT(u.nom, ' ', u.prenom) SEPARATOR ', ') as gestionnaires_noms,
+            GROUP_CONCAT(DISTINCT u.email SEPARATOR ', ') as gestionnaires_emails,
+            GROUP_CONCAT(DISTINCT u.id_utilisateur SEPARATOR ', ') as gestionnaires_ids
         FROM une_buvette b 
         LEFT JOIN (
             SELECT a.id_buvette, a.id_utilisateur
@@ -109,6 +109,8 @@ class ModeleSuperAdmin {
             AND (a.date_fin IS NULL OR a.date_fin > CURDATE())
         ) gestion_actuelle ON b.id_buvette = gestion_actuelle.id_buvette
         LEFT JOIN utilisateur u ON gestion_actuelle.id_utilisateur = u.id_utilisateur
+        WHERE b.archivee IS NULL
+        GROUP BY b.id_buvette
         ORDER BY b.nom
     ");
         $stmt->execute();

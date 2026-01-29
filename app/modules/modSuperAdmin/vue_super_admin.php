@@ -361,8 +361,9 @@ class VueSuperAdmin {
                         <table class="table table-striped">
                             <thead>
                             <tr>
+                                <th>ID</th> <!-- Nouvelle colonne ID -->
                                 <th>Nom de la buvette</th>
-                                <th>Gestionnaire</th>
+                                <th>Gestionnaire(s)</th>
                                 <th>Statut</th>
                                 <th>Actions</th>
                             </tr>
@@ -370,16 +371,26 @@ class VueSuperAdmin {
                             <tbody>
                             <?php foreach ($buvettes as $buvette): ?>
                                 <tr>
+                                    <td>#<?= htmlspecialchars($buvette['id_buvette']) ?></td> <!-- Affichage de l'ID -->
                                     <td>
                                         <strong><?= htmlspecialchars($buvette['nom']) ?></strong>
                                         <br>
                                         <small class="text-muted"><?= htmlspecialchars($buvette['description']) ?></small>
                                     </td>
                                     <td>
-                                        <?php if ($buvette['gestionnaire_nom']): ?>
-                                            <span class="badge bg-success fs-6">
-                                                <?= htmlspecialchars($buvette['gestionnaire_nom'] . ' ' . $buvette['gestionnaire_prenom']) ?>
-                                            </span>
+                                        <?php if ($buvette['gestionnaires_noms']):
+                                            // Séparer les noms et emails
+                                            $noms = explode(', ', $buvette['gestionnaires_noms']);
+                                            $emails = explode(', ', $buvette['gestionnaires_emails']);
+                                            ?>
+                                            <?php foreach ($noms as $index => $nom): ?>
+                                            <?php if (trim($nom)): ?>
+                                                <span class="badge bg-success fs-6 me-1 mb-1"
+                                                      title="<?= htmlspecialchars($emails[$index] ?? '') ?>">
+                                                    <?= htmlspecialchars($nom) ?>
+                                                </span>
+                                            <?php endif; ?>
+                                        <?php endforeach; ?>
                                         <?php else: ?>
                                             <div class="d-flex align-items-center">
                                                 <span class="badge bg-warning fs-6 me-2">Aucun gestionnaire</span>
