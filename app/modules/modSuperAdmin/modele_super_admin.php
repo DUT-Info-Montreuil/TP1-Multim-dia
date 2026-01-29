@@ -364,18 +364,24 @@ class ModeleSuperAdmin {
     public function getGestionnaires() {
         try {
             $stmt = $this->bdd->prepare("
-            SELECT DISTINCT u.id_utilisateur, u.nom, u.prenom, u.email,
-                   b.nom as buvette_nom, b.id_buvette,
-                   a.date_debut, a.date_fin
-            FROM utilisateur u
-            INNER JOIN affecter a ON u.id_utilisateur = a.id_utilisateur
-            INNER JOIN role_utilisateur r ON a.id_role = r.id_role
-            LEFT JOIN une_buvette b ON a.id_buvette = b.id_buvette
-            WHERE r.nom_role = 'gestionnaire'
-            AND a.date_debut <= CURDATE()
-            AND (a.date_fin IS NULL OR a.date_fin > CURDATE()) 
-            AND b.archivee IS NULL
-            ORDER BY u.nom, u.prenom
+        SELECT u.id_utilisateur, u.nom, u.prenom, u.email,
+               b.nom as buvette_nom, b.id_buvette,
+               a.date_debut, a.date_fin,
+               (SELECT COUNT(*) 
+                FROM affecter a2 
+                WHERE a2.id_buvette = b.id_buvette
+                AND a2.id_role = (SELECT id_role FROM role_utilisateur WHERE nom_role = 'gestionnaire')
+                AND a2.date_debut <= CURDATE()
+                AND (a2.date_fin IS NULL OR a2.date_fin > CURDATE())) as nb_gestionnaires_buvette
+        FROM utilisateur u
+        INNER JOIN affecter a ON u.id_utilisateur = a.id_utilisateur
+        INNER JOIN role_utilisateur r ON a.id_role = r.id_role
+        LEFT JOIN une_buvette b ON a.id_buvette = b.id_buvette
+        WHERE r.nom_role = 'gestionnaire'
+        AND a.date_debut <= CURDATE()
+        AND (a.date_fin IS NULL OR a.date_fin > CURDATE()) 
+        AND b.archivee IS NULL
+        ORDER BY b.nom, u.nom, u.prenom
         ");
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -408,20 +414,18 @@ class ModeleSuperAdmin {
     public function getBuvettesSansGestionnaire() {
         try {
             $stmt = $this->bdd->prepare("
-        SELECT b.id_buvette, b.nom
+        SELECT b.id_buvette, b.nom,
+               COUNT(DISTINCT a.id_utilisateur) as nb_gestionnaires
         FROM une_buvette b
+        LEFT JOIN affecter a ON b.id_buvette = a.id_buvette
+        AND a.date_debut <= CURDATE()
+        AND (a.date_fin IS NULL OR a.date_fin > CURDATE())
+        AND a.id_role = (SELECT id_role FROM role_utilisateur WHERE nom_role = 'gestionnaire')
         WHERE b.archivee IS NULL
-        AND NOT EXISTS (
-            SELECT 1 
-            FROM affecter a 
-            JOIN role_utilisateur r ON a.id_role = r.id_role
-            WHERE a.id_buvette = b.id_buvette
-            AND r.nom_role = 'gestionnaire'
-            AND a.date_debut <= CURDATE()
-            AND (a.date_fin IS NULL OR a.date_fin > CURDATE())
-        )
+        GROUP BY b.id_buvette
+        HAVING nb_gestionnaires < 2
         ORDER BY b.nom
-    ");
+        ");
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
@@ -442,67 +446,75 @@ class ModeleSuperAdmin {
                 $id_role = $role['id_role'];
             }
 
+
             $stmt = $this->bdd->prepare("
-            SELECT id_utilisateur 
-            FROM affecter 
-            WHERE id_role = ? 
-            AND id_buvette = ?
-            AND date_debut <= CURDATE()
-            AND (date_fin IS NULL OR date_fin > CURDATE())
+        SELECT COUNT(DISTINCT id_utilisateur) as nb_gestionnaires 
+        FROM affecter 
+        WHERE id_role = ? 
+        AND id_buvette = ?
+        AND date_debut <= CURDATE()
+        AND (date_fin IS NULL OR date_fin > CURDATE())
         ");
             $stmt->execute([$id_role, $id_buvette]);
-            $existingGestionnaire = $stmt->fetch();
+            $result = $stmt->fetch();
 
-            if ($existingGestionnaire) {
+            if ($result['nb_gestionnaires'] >= 2) {
                 return false;
             }
 
+            // Vérifier si l'utilisateur est déjà gestionnaire d'une autre buvette
             $stmt = $this->bdd->prepare("
-            SELECT id_buvette 
-            FROM affecter 
-            WHERE id_role = ? 
-            AND id_utilisateur = ?
-            AND date_debut <= CURDATE()
-            AND (date_fin IS NULL OR date_fin > CURDATE())
+        SELECT id_buvette 
+        FROM affecter 
+        WHERE id_role = ? 
+        AND id_utilisateur = ?
+        AND date_debut <= CURDATE()
+        AND (date_fin IS NULL OR date_fin > CURDATE())
+        AND id_buvette != ?
         ");
-            $stmt->execute([$id_role, $id_utilisateur]);
+            $stmt->execute([$id_role, $id_utilisateur, $id_buvette]);
             $existingBuvette = $stmt->fetch();
 
             if ($existingBuvette) {
                 $stmt = $this->bdd->prepare("
-                UPDATE affecter 
-                SET date_fin = CURDATE() - INTERVAL 1 DAY
-                WHERE id_role = ? 
-                AND id_utilisateur = ?
-                AND id_buvette = ?
-                AND (date_fin IS NULL OR date_fin > CURDATE())
+            UPDATE affecter 
+            SET date_fin = CURDATE() - INTERVAL 1 DAY
+            WHERE id_role = ? 
+            AND id_utilisateur = ?
+            AND id_buvette = ?
+            AND (date_fin IS NULL OR date_fin > CURDATE())
             ");
                 $stmt->execute([$id_role, $id_utilisateur, $existingBuvette['id_buvette']]);
             }
 
+            // Vérifier si l'utilisateur est déjà gestionnaire de cette buvette
             $stmt = $this->bdd->prepare("
-            SELECT 1 
-            FROM affecter 
-            WHERE id_role = ? 
-            AND id_utilisateur = ? 
-            AND id_buvette = ?
+        SELECT 1 
+        FROM affecter 
+        WHERE id_role = ? 
+        AND id_utilisateur = ? 
+        AND id_buvette = ?
+        AND date_debut <= CURDATE()
+        AND (date_fin IS NULL OR date_fin > CURDATE())
         ");
             $stmt->execute([$id_role, $id_utilisateur, $id_buvette]);
 
             if ($stmt->fetch()) {
+                // L'utilisateur est déjà gestionnaire de cette buvette
                 $stmt = $this->bdd->prepare("
-                UPDATE affecter 
-                SET date_debut = CURDATE(), 
-                    date_fin = NULL 
-                WHERE id_role = ? 
-                AND id_utilisateur = ? 
-                AND id_buvette = ?
+            UPDATE affecter 
+            SET date_debut = CURDATE(), 
+                date_fin = NULL 
+            WHERE id_role = ? 
+            AND id_utilisateur = ? 
+            AND id_buvette = ?
             ");
                 return $stmt->execute([$id_role, $id_utilisateur, $id_buvette]);
             } else {
+                // Nouvelle affectation
                 $stmt = $this->bdd->prepare("
-                INSERT INTO affecter (id_role, id_utilisateur, id_buvette, date_debut, date_fin)
-                VALUES (:id_role, :id_utilisateur, :id_buvette, CURDATE(), NULL)
+            INSERT INTO affecter (id_role, id_utilisateur, id_buvette, date_debut, date_fin)
+            VALUES (:id_role, :id_utilisateur, :id_buvette, CURDATE(), NULL)
             ");
                 return $stmt->execute([
                     ':id_role' => $id_role,
@@ -512,6 +524,7 @@ class ModeleSuperAdmin {
             }
 
         } catch (PDOException $e) {
+            error_log("Erreur attribution gestionnaire: " . $e->getMessage());
             return false;
         }
     }
@@ -571,23 +584,46 @@ class ModeleSuperAdmin {
             return false;
         }
     }
+    public function retirerGestionnaireBuvette($id_utilisateur, $id_buvette) {
+        try {
+            $stmt = $this->bdd->prepare("
+        DELETE a FROM affecter a
+        JOIN role_utilisateur r ON a.id_role = r.id_role
+        WHERE a.id_utilisateur = :id_utilisateur
+        AND a.id_buvette = :id_buvette
+        AND r.nom_role = 'gestionnaire'
+        AND a.date_debut <= CURDATE()
+        AND (a.date_fin IS NULL OR a.date_fin > CURDATE())
+        ");
+
+            return $stmt->execute([
+                ':id_utilisateur' => $id_utilisateur,
+                ':id_buvette' => $id_buvette
+            ]);
+
+        } catch (PDOException $e) {
+            error_log("Erreur suppression gestionnaire buvette: " . $e->getMessage());
+            return false;
+        }
+    }
+
     public function retirerRoleGestionnaire($id_utilisateur) {
         try {
             $stmt = $this->bdd->prepare("
-        UPDATE affecter a
+        DELETE a FROM affecter a
         JOIN role_utilisateur r ON a.id_role = r.id_role
-        SET a.date_fin = CURDATE() - INTERVAL 1 DAY  
         WHERE a.id_utilisateur = :id_utilisateur
         AND r.nom_role = 'gestionnaire'
         AND a.date_debut <= CURDATE()
         AND (a.date_fin IS NULL OR a.date_fin > CURDATE())
-    ");
+        ");
 
             $result = $stmt->execute([':id_utilisateur' => $id_utilisateur]);
 
             return $result;
 
         } catch (PDOException $e) {
+            error_log("Erreur suppression rôle gestionnaire: " . $e->getMessage());
             return false;
         }
     }
@@ -668,7 +704,6 @@ class ModeleSuperAdmin {
                 return false;
             }
 
-            // Commencer une transaction
             $this->bdd->beginTransaction();
 
             // 1. Créer la buvette
@@ -683,7 +718,7 @@ class ModeleSuperAdmin {
 
             $id_buvette = $this->bdd->lastInsertId();
 
-            // 2. Attribuer automatiquement le demandeur comme gestionnaire
+            // attributio auto role gestionnaire
             $id_role = $this->getRoleGestionnaireId();
 
             if ($id_role) {
@@ -698,7 +733,6 @@ class ModeleSuperAdmin {
                 ]);
             }
 
-            // 3. Mettre à jour le statut de la demande
             $stmt = $this->bdd->prepare("
             UPDATE demande_creation_buvette 
             SET statut = 'Validée', raison_refus = NULL 
@@ -706,13 +740,11 @@ class ModeleSuperAdmin {
         ");
             $stmt->execute([$id_demande]);
 
-            // Valider la transaction
             $this->bdd->commit();
 
             return true;
 
         } catch (PDOException $e) {
-            // Annuler en cas d'erreur
             $this->bdd->rollBack();
             return false;
         }
@@ -745,7 +777,6 @@ class ModeleSuperAdmin {
             if ($result) {
                 return $result['id_role'];
             } else {
-                // Créer le rôle s'il n'existe pas
                 $stmt = $this->bdd->prepare("INSERT INTO role_utilisateur (nom_role) VALUES ('gestionnaire')");
                 $stmt->execute();
                 return $this->bdd->lastInsertId();

@@ -379,7 +379,6 @@ class VueSuperAdmin {
                                     </td>
                                     <td>
                                         <?php if ($buvette['gestionnaires_noms']):
-                                            // Séparer les noms et emails
                                             $noms = explode(', ', $buvette['gestionnaires_noms']);
                                             $emails = explode(', ', $buvette['gestionnaires_emails']);
                                             ?>
@@ -640,7 +639,7 @@ class VueSuperAdmin {
                 <h1 class="font-handwritten">Gestion des Gestionnaires</h1>
                 <div>
                     <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#attribuerGestionnaireModal">
-                        <i class="fas fa-plus"></i> Attribuer un Gestionnaire
+                        <i class="fas fa-plus"></i> Attribuer le rôle
                     </button>
                     <a href="index.php?module=superadmin" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Retour
@@ -650,7 +649,24 @@ class VueSuperAdmin {
 
             <?php if ($message): ?>
                 <div class="alert alert-success alert-dismissible fade show">
-                    <?= htmlspecialchars($message) ?>
+                    <?php
+                    switch($message) {
+                        case 'gestionnaire_supprime':
+                            echo "Gestionnaire supprimé de la buvette avec succès";
+                            break;
+                        case 'supprime_tous':
+                            echo "Tous les rôles de gestionnaire ont été supprimés avec succès";
+                            break;
+                        case 'attribue':
+                            echo "Gestionnaire attribué avec succès";
+                            break;
+                        case 'error':
+                            echo "Erreur lors de l'opération";
+                            break;
+                        default:
+                            echo htmlspecialchars($message);
+                    }
+                    ?>
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             <?php endif; ?>
@@ -667,6 +683,7 @@ class VueSuperAdmin {
                                 <th>Nom et Prénom</th>
                                 <th>Email</th>
                                 <th>Buvette assignée</th>
+                                <th>Statut buvette</th>
                                 <th>Actions</th>
                             </tr>
                             </thead>
@@ -677,31 +694,53 @@ class VueSuperAdmin {
                                     <td><?= htmlspecialchars($gestionnaire['email']) ?></td>
                                     <td>
                                         <?php if ($gestionnaire['buvette_nom']): ?>
-                                            <span class="badge bg-primary fs-6"><?= htmlspecialchars($gestionnaire['buvette_nom']) ?></span>
+                                            <span class="badge bg-primary fs-6"
+                                                  title="ID Buvette : <?= htmlspecialchars($gestionnaire['id_buvette']) ?>"
+                                                  data-bs-toggle="tooltip"
+                                                  data-bs-placement="top">
+                                            <?= htmlspecialchars($gestionnaire['buvette_nom']) ?>
+                                                <?php if (isset($gestionnaire['nb_gestionnaires_buvette'])): ?>
+                                                    <span class="badge bg-info ms-1"><?= $gestionnaire['nb_gestionnaires_buvette'] ?>/2</span>
+                                                <?php endif; ?>
+                                        </span>
                                         <?php else: ?>
                                             <span class="badge bg-warning fs-6">Aucune buvette</span>
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <button type="button" class="btn btn-sm btn-outline-danger"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#retirerGestionnaireModal"
-                                                data-id="<?= $gestionnaire['id_utilisateur'] ?>"
-                                                data-nom="<?= htmlspecialchars($gestionnaire['nom'] . ' ' . $gestionnaire['prenom']) ?>">
-                                            <i class="fas fa-user-minus"></i> Retirer le rôle
-                                        </button>
+                                        <?php if ($gestionnaire['buvette_nom']): ?>
+                                            <small class="text-muted">
+                                                Depuis <?= date('d/m/Y', strtotime($gestionnaire['date_debut'])) ?>
+                                            </small>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <?php if ($gestionnaire['buvette_nom']): ?>
+                                                <!-- Bouton pour supprimer de cette buvette spécifique -->
+                                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#retirerGestionnaireBuvetteModal"
+                                                        data-id-utilisateur="<?= $gestionnaire['id_utilisateur'] ?>"
+                                                        data-id-buvette="<?= $gestionnaire['id_buvette'] ?>"
+                                                        data-nom="<?= htmlspecialchars($gestionnaire['nom'] . ' ' . $gestionnaire['prenom']) ?>"
+                                                        data-buvette="<?= htmlspecialchars($gestionnaire['buvette_nom']) ?>"
+                                                        title="Supprimer seulement de cette buvette">
+                                                    <i class="fas fa-trash-alt"></i> Supprimer le rôle
+                                                </button>
+                                            <?php endif; ?>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                             </tbody>
                         </table>
                     </div>
-                    <?php if (empty($gestionnaire)): ?>
+                    <?php if (empty($gestionnaires)): ?>
                         <div class="text-center py-4">
-                            <p class="text-muted">Aucune gestionnaire enregistré</p>
+                            <p class="text-muted">Aucun gestionnaire enregistré</p>
                         </div>
                     <?php endif; ?>
-
                 </div>
             </div>
         </div>
@@ -713,11 +752,12 @@ class VueSuperAdmin {
                     <form method="POST">
                         <input type="hidden" name="csrf_token" value="<?= $token ?>">
                         <div class="modal-header">
-                            <h5 class="modal-title">Attribuer un Gestionnaire</h5>
+                            <h5 class="modal-title">Attribuer le rôle de Gestionnaire</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
                             <input type="hidden" name="action" value="attribuer">
+
 
                             <div class="mb-3">
                                 <label for="id_utilisateur" class="form-label">Utilisateur</label>
@@ -738,79 +778,58 @@ class VueSuperAdmin {
                                     <?php foreach ($buvettesDisponibles as $buvette): ?>
                                         <option value="<?= $buvette['id_buvette'] ?>">
                                             <?= htmlspecialchars($buvette['nom']) ?>
+                                            (<?= $buvette['nb_gestionnaires'] ?? 0 ?>/2 gestionnaires)
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
+                                <?php if (empty($buvettesDisponibles)): ?>
+                                    <div class="form-text text-warning mt-1">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Toutes les buvettes ont déjà 2 gestionnaires. Vous ne pouvez pas en ajouter plus.
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                            <button type="submit" class="btn btn-success">Attribuer</button>
+                            <button type="submit" class="btn btn-success" <?= empty($buvettesDisponibles) ? 'disabled' : '' ?>>
+                                Attribuer
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
 
-        <!-- Modal Modifier Gestionnaire -->
-        <div class="modal fade" id="modifierGestionnaireModal" tabindex="-1">
+        <!-- Modal Supprimer Gestionnaire d'une Buvette Spécifique -->
+        <div class="modal fade" id="retirerGestionnaireBuvetteModal" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <form method="POST">
+                    <form method="POST" action="index.php?module=superadmin&action=retirer_gestionnaire_specifique">
                         <input type="hidden" name="csrf_token" value="<?= $token ?>">
                         <div class="modal-header">
-                            <h5 class="modal-title">Modifier l'assignation</h5>
+                            <h5 class="modal-title">Supprimer le gestionnaire d'une buvette</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
-                            <input type="hidden" name="action" value="modifier">
-                            <input type="hidden" name="id_utilisateur" id="modifier_id_utilisateur">
-
-                            <p>Gestionnaire : <strong id="modifier_nom_gestionnaire"></strong></p>
-
-                            <div class="mb-3">
-                                <label for="modifier_id_buvette" class="form-label">Nouvelle buvette</label>
-                                <select class="form-control" name="id_buvette" id="modifier_id_buvette">
-                                    <!--                                    <option value="">Aucune buvette (retirer de l'assignation actuelle)</option>-->
-                                    <?php foreach ($buvettesDisponibles as $buvette): ?>
-                                        <option value="<?= $buvette['id_buvette'] ?>">
-                                            <?= htmlspecialchars($buvette['nom']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                            <button type="submit" class="btn btn-primary">Modifier</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal Retirer Gestionnaire -->
-        <div class="modal fade" id="retirerGestionnaireModal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form method="POST" action="index.php?module=superadmin&action=retirer_gestionnaire">
-                        <input type="hidden" name="csrf_token" value="<?= $token ?>">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Retirer le rôle de gestionnaire</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <input type="hidden" name="id_utilisateur" id="retirer_id_utilisateur">
+                            <input type="hidden" name="id_utilisateur" id="retirer_buvette_id_utilisateur">
+                            <input type="hidden" name="id_buvette" id="retirer_buvette_id_buvette">
 
                             <div class="alert alert-warning">
                                 <i class="fas fa-exclamation-triangle"></i>
-                                Voulez-vous retirer le rôle de gestionnaire à <strong id="retirer_nom_gestionnaire"></strong> ?
-                                Il redeviendra un utilisateur standard.
+                                Voulez-vous supprimer <strong id="retirer_buvette_nom_gestionnaire"></strong>
+                                de la buvette <strong id="retirer_buvette_nom_buvette"></strong> ?
+                                <br><br>
+                                <small class="text-muted">
+                                    L'utilisateur sera complètement supprimé de la table d'affectation pour cette buvette.
+                                </small>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                            <button type="submit" class="btn btn-danger">Retirer le rôle</button>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash-alt"></i> Supprimer de cette buvette
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -818,16 +837,20 @@ class VueSuperAdmin {
         </div>
 
         <script>
-            document.getElementById('modifierGestionnaireModal').addEventListener('show.bs.modal', function (event) {
+            // Script pour le modal de suppression d'une buvette spécifique
+            document.getElementById('retirerGestionnaireBuvetteModal').addEventListener('show.bs.modal', function (event) {
                 let button = event.relatedTarget;
-                document.getElementById('modifier_id_utilisateur').value = button.getAttribute('data-id');
-                document.getElementById('modifier_nom_gestionnaire').textContent = button.getAttribute('data-nom');
+                document.getElementById('retirer_buvette_id_utilisateur').value = button.getAttribute('data-id-utilisateur');
+                document.getElementById('retirer_buvette_id_buvette').value = button.getAttribute('data-id-buvette');
+                document.getElementById('retirer_buvette_nom_gestionnaire').textContent = button.getAttribute('data-nom');
+                document.getElementById('retirer_buvette_nom_buvette').textContent = button.getAttribute('data-buvette');
             });
 
-            document.getElementById('retirerGestionnaireModal').addEventListener('show.bs.modal', function (event) {
-                let button = event.relatedTarget;
-                document.getElementById('retirer_id_utilisateur').value = button.getAttribute('data-id');
-                document.getElementById('retirer_nom_gestionnaire').textContent = button.getAttribute('data-nom');
+
+            // Activer les tooltips Bootstrap
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
             });
         </script>
         <?php

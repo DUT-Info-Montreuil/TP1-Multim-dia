@@ -36,6 +36,9 @@ class ContSuperAdmin {
             case 'retirer_gestionnaire':
                 $this->retirerGestionnaire();
                 break;
+            case 'retirer_gestionnaire_specifique':
+                $this->retirerGestionnaireSpecifique();
+                break;
             case 'gestion_demandes_creation':
                 $this->gestionDemandesCreation();
                 break;
@@ -308,6 +311,7 @@ class ContSuperAdmin {
                             $_POST['id_utilisateur'],
                             $_POST['id_buvette']
                         );
+
                         if ($result) {
                             $buvette = $this->modele->getBuvetteById($_POST['id_buvette']);
 
@@ -321,7 +325,34 @@ class ContSuperAdmin {
                             $utilisateursDisponibles = $this->modele->getUtilisateursSansRole();
                             $buvettesDisponibles = $this->modele->getBuvettesSansGestionnaire();
                         } else {
-                            $message = "Erreur : Cette buvette a déjà un gestionnaire ou l'utilisateur est déjà gestionnaire d'une autre buvette";
+                            $message = "Erreur : Cette buvette a déjà 2 gestionnaires ou l'utilisateur est déjà gestionnaire d'une autre buvette";
+                        }
+                    }
+                    break;
+
+                case 'ajouter':
+                    if (isset($_POST['id_utilisateur'], $_POST['id_buvette'])) {
+                        $utilisateur = $this->modele->getUtilisateurById($_POST['id_utilisateur']);
+
+                        $result = $this->modele->attribuerRoleGestionnaire(
+                            $_POST['id_utilisateur'],
+                            $_POST['id_buvette']
+                        );
+
+                        if ($result) {
+                            $buvette = $this->modele->getBuvetteById($_POST['id_buvette']);
+
+                            $this->modele->ajouterJournalActivite(
+                                'Ajout gestionnaire à une buvette',
+                                $utilisateur['email'],
+                                'Buvette: ' . $buvette['nom'] . ' (ID: ' . $_POST['id_buvette'] . ')'
+                            );
+                            $message = "Gestionnaire ajouté avec succès";
+                            $gestionnaires = $this->modele->getGestionnaires();
+                            $utilisateursDisponibles = $this->modele->getUtilisateursSansRole();
+                            $buvettesDisponibles = $this->modele->getBuvettesSansGestionnaire();
+                        } else {
+                            $message = "Erreur : Cette buvette a déjà 2 gestionnaires ou l'utilisateur est déjà gestionnaire d'une autre buvette";
                         }
                     }
                     break;
@@ -330,11 +361,17 @@ class ContSuperAdmin {
 
         if (isset($_GET['message'])) {
             switch ($_GET['message']) {
-                case 'retirer':
+                case 'retire':
                     $message = "Rôle de gestionnaire retiré avec succès";
                     break;
                 case 'error':
                     $message = "Erreur lors de l'opération";
+                    break;
+                case 'attribue':
+                    $message = "Gestionnaire attribué avec succès";
+                    break;
+                case 'max_atteint':
+                    $message = "Erreur : Cette buvette a déjà 2 gestionnaires maximum";
                     break;
             }
         }
@@ -379,13 +416,13 @@ class ContSuperAdmin {
             if ($result) {
                 if ($utilisateur) {
                     $this->modele->ajouterJournalActivite(
-                        'Retrait rôle gestionnaire',
+                        'Suppression rôle gestionnaire',
                         $utilisateur['email'],
-                        'Rôle retiré'
+                        'Tous les rôles de gestionnaire supprimés de la table affecter'
                     );
                 }
 
-                header('Location: index.php?module=superadmin&action=gestion_gestionnaires&message=retired');
+                header('Location: index.php?module=superadmin&action=gestion_gestionnaires&message=supprime_tous');
                 exit();
             } else {
                 header('Location: index.php?module=superadmin&action=gestion_gestionnaires&message=error');
@@ -396,6 +433,42 @@ class ContSuperAdmin {
             exit();
         }
     }
+
+    private function retirerGestionnaireSpecifique() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_utilisateur'], $_POST['id_buvette'])) {
+            if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
+                die("Erreur de sécurité CSRF");
+            }
+
+            $id_utilisateur = $_POST['id_utilisateur'];
+            $id_buvette = $_POST['id_buvette'];
+
+            $utilisateur = $this->modele->getUtilisateurById($id_utilisateur);
+            $buvette = $this->modele->getBuvetteById($id_buvette);
+
+            $result = $this->modele->retirerGestionnaireBuvette($id_utilisateur, $id_buvette);
+
+            if ($result) {
+                if ($utilisateur && $buvette) {
+                    $this->modele->ajouterJournalActivite(
+                        'Suppression gestionnaire de buvette',
+                        $utilisateur['email'],
+                        'Buvette: ' . $buvette['nom'] . ' (ID: ' . $id_buvette . ') - Supprimé de la table affecter'
+                    );
+                }
+
+                header('Location: index.php?module=superadmin&action=gestion_gestionnaires&message=gestionnaire_supprime');
+                exit();
+            } else {
+                header('Location: index.php?module=superadmin&action=gestion_gestionnaires&message=error');
+                exit();
+            }
+        } else {
+            header('Location: index.php?module=superadmin&action=gestion_gestionnaires');
+            exit();
+        }
+    }
+
 
     private function journalActivite() {
         $filtres = [];
