@@ -21,7 +21,7 @@ class VueGalerie
                 <!-- Photo 1 (Grande) -->
                 <div class="col-md-8 fade-in-up" style="animation-delay: 0.1s;">
                     <div class="card border-0 rounded-4 overflow-hidden shadow-sm h-100 position-relative group-hover-zoom">
-                        <img src="https://placehold.co/800x500/EEE/31343C?text=Ambiance+Soir%C3%A9e" class="img-fluid w-100 h-100 object-fit-cover transition-transform" alt="Soirée étudiante">
+                        <img src="public/img/galerie/soiree.png" class="img-fluid w-100 h-100 object-fit-cover transition-transform" alt="Soirée étudiante">
                         <div class="card-img-overlay bg-gradient-dark d-flex align-items-end p-4 opacity-0 hover-opacity-100 transition-opacity">
                             <div class="text-white">
                                 <h5 class="fw-bold mb-1">Soirées Étudiantes</h5>
@@ -34,7 +34,7 @@ class VueGalerie
                 <!-- Photo 2 -->
                 <div class="col-md-4 fade-in-up" style="animation-delay: 0.2s;">
                     <div class="card border-0 rounded-4 overflow-hidden shadow-sm h-100 position-relative group-hover-zoom">
-                        <img src="https://placehold.co/400x500/EEE/31343C?text=Barman" class="img-fluid w-100 h-100 object-fit-cover transition-transform" alt="Barman">
+                        <img src="public/img/galerie/barman.png" class="img-fluid w-100 h-100 object-fit-cover transition-transform" alt="Barman">
                         <div class="card-img-overlay bg-gradient-dark d-flex align-items-end p-4 opacity-0 hover-opacity-100 transition-opacity">
                             <div class="text-white">
                                 <h5 class="fw-bold mb-1">Nos Barmans</h5>
@@ -47,7 +47,7 @@ class VueGalerie
                 <!-- Photo 3 -->
                 <div class="col-md-4 fade-in-up" style="animation-delay: 0.3s;">
                     <div class="card border-0 rounded-4 overflow-hidden shadow-sm h-100 position-relative group-hover-zoom">
-                        <img src="https://placehold.co/400x400/EEE/31343C?text=Terrasse" class="img-fluid w-100 h-100 object-fit-cover transition-transform" alt="Terrasse">
+                        <img src="public/img/galerie/terasse.png" class="img-fluid w-100 h-100 object-fit-cover transition-transform" alt="Terrasse">
                         <div class="card-img-overlay bg-gradient-dark d-flex align-items-end p-4 opacity-0 hover-opacity-100 transition-opacity">
                             <div class="text-white">
                                 <h5 class="fw-bold mb-1">La Terrasse</h5>
@@ -60,7 +60,7 @@ class VueGalerie
                 <!-- Photo 4 -->
                 <div class="col-md-4 fade-in-up" style="animation-delay: 0.4s;">
                     <div class="card border-0 rounded-4 overflow-hidden shadow-sm h-100 position-relative group-hover-zoom">
-                        <img src="https://placehold.co/400x400/EEE/31343C?text=Caf%C3%A9" class="img-fluid w-100 h-100 object-fit-cover transition-transform" alt="Café">
+                        <img src="public/img/galerie/cafe.png" class="img-fluid w-100 h-100 object-fit-cover transition-transform" alt="Café">
                         <div class="card-img-overlay bg-gradient-dark d-flex align-items-end p-4 opacity-0 hover-opacity-100 transition-opacity">
                             <div class="text-white">
                                 <h5 class="fw-bold mb-1">Pause Café</h5>
@@ -73,7 +73,7 @@ class VueGalerie
                 <!-- Photo 5 -->
                 <div class="col-md-4 fade-in-up" style="animation-delay: 0.5s;">
                     <div class="card border-0 rounded-4 overflow-hidden shadow-sm h-100 position-relative group-hover-zoom">
-                        <img src="https://placehold.co/400x400/EEE/31343C?text=Concert" class="img-fluid w-100 h-100 object-fit-cover transition-transform" alt="Concert">
+                        <img src="public/img/galerie/concert.png" class="img-fluid w-100 h-100 object-fit-cover transition-transform" alt="Concert">
                         <div class="card-img-overlay bg-gradient-dark d-flex align-items-end p-4 opacity-0 hover-opacity-100 transition-opacity">
                             <div class="text-white">
                                 <h5 class="fw-bold mb-1">Live Music</h5>

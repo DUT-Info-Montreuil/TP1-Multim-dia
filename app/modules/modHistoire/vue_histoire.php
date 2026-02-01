@@ -22,7 +22,7 @@ class VueHistoire {
                     <div class="position-relative">
                         <!-- Image placeholder : remplace par le nom de ton image -->
                         <div class="rounded-5 overflow-hidden shadow-lg border border-5 border-white transform-rotate-n3">
-                            <img src="public/img/story_1.jpg" onerror="this.src='https://placehold.co/600x400?text=Le+Commencement'" class="img-fluid w-100" alt="Le début">
+                            <img src="public/img/histoire/story_1.jpg" onerror="this.src='https://placehold.co/600x400?text=Le+Commencement'" class="img-fluid w-100" alt="Le début">
                         </div>
                     </div>
                 </div>
@@ -44,7 +44,7 @@ class VueHistoire {
                 <div class="col-md-6 order-md-2 mb-4 mb-md-0">
                     <div class="position-relative">
                         <div class="rounded-5 overflow-hidden shadow-lg border border-5 border-white transform-rotate-3">
-                            <img src="public/img/story_2.jpg" onerror="this.src='https://placehold.co/600x400?text=L\'Ambiance'" class="img-fluid w-100" alt="L'ambiance">
+                            <img src="public/img/histoire/story_2.png" onerror="this.src='https://placehold.co/600x400?text=L\'Ambiance'" class="img-fluid w-100" alt="L'ambiance">
                         </div>
                     </div>
                 </div>
@@ -67,7 +67,7 @@ class VueHistoire {
                 <div class="col-md-6 mb-4 mb-md-0">
                     <div class="position-relative">
                         <div class="rounded-5 overflow-hidden shadow-lg border border-5 border-white transform-rotate-n3">
-                            <img src="public/img/story_3.jpg" onerror="this.src='https://placehold.co/600x400?text=L\'Equipe'" class="img-fluid w-100" alt="L'équipe">
+                            <img src="public/img/histoire/story_3.png" onerror="this.src='https://placehold.co/600x400?text=L\'Equipe'" class="img-fluid w-100" alt="L'équipe">
                         </div>
                     </div>
                 </div>
