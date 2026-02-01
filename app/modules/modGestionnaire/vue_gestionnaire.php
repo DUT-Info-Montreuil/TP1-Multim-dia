@@ -126,7 +126,12 @@ class VueGestionnaire {
 
             <div class="d-flex justify-content-between align-items-end mb-4">
                 <h2 class="font-handwritten text-dark mb-0">Tableau de bord</h2>
-                <span class="badge bg-secondary rounded-pill px-3">Buvette #<?= $id_buvette ?></span>
+                <div class="d-flex gap-2 align-items-center">
+                    <a href="index.php?module=gestionnaire&action=profil&id_buvette=<?= $id_buvette ?>"
+                       class="btn btn-outline-primary rounded-pill px-4">
+                        <i class="bi bi-gear-fill me-2"></i>Paramètres
+                    </a>
+                </div>
             </div>
 
             <div class="row g-3 mb-5 text-center">
@@ -1072,6 +1077,132 @@ class VueGestionnaire {
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+        <?php
+    }
+    public function afficherProfilBuvette($buvette, $token) {
+        $statut_class = $buvette['est_ouverte'] ? 'bg-success' : 'bg-danger';
+        $statut_texte = $buvette['est_ouverte'] ? 'Ouverte' : 'Fermée';
+        $bouton_texte = $buvette['est_ouverte'] ? 'Fermer la buvette' : 'Ouvrir la buvette';
+        $bouton_class = $buvette['est_ouverte'] ? 'btn-danger' : 'btn-success';
+        ?>
+        <div class="module-gestionnaire container mt-5 pt-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="font-handwritten mb-0">Profil de la buvette</h2>
+                <a href="index.php?module=gestionnaire&id_buvette=<?= $buvette['id_buvette'] ?>"
+                   class="btn btn-outline-secondary rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-2"></i> Retour au tableau de bord
+                </a>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h4 class="fw-bold mb-3">Statut d'ouverture</h4>
+                        <p class="text-muted mb-0">
+                            Gérez simplement l'ouverture et la fermeture de votre buvette.
+                            Les clients ne pourront pas commander lorsque la buvette est fermée.
+                        </p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <div class="mb-3">
+                            <span class="badge <?= $statut_class ?> rounded-pill px-4 py-2 fs-5">
+                                <i class="bi bi-<?= $buvette['est_ouverte'] ? 'unlock' : 'lock' ?> me-2"></i>
+                                <?= $statut_texte ?>
+                            </span>
+                        </div>
+                        <form method="POST" action="index.php?module=gestionnaire&action=toggle_ouverture&id_buvette=<?= $buvette['id_buvette'] ?>" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="<?= $token ?>">
+                            <button type="submit" class="btn <?= $bouton_class ?> rounded-pill px-5 py-3 fw-bold fs-5">
+                                <i class="bi bi-<?= $buvette['est_ouverte'] ? 'lock-fill' : 'unlock-fill' ?> me-2"></i>
+                                <?= $bouton_texte ?>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-5">
+                <h4 class="fw-bold mb-4">Informations de la buvette</h4>
+
+                <form action="index.php?module=gestionnaire&action=modifier_profil&id_buvette=<?= $buvette['id_buvette'] ?>"
+                      method="POST" enctype="multipart/form-data">
+
+                    <input type="hidden" name="csrf_token" value="<?= $token ?>">
+
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-4">
+                            <label class="form-label fw-bold">Image actuelle</label>
+                            <div class="bg-light rounded-4 p-4 mb-3 d-flex align-items-center justify-content-center"
+                                 style="min-height: 250px;">
+                                <?php if (!empty($buvette['image_buvette'])): ?>
+                                    <img src="public/img/buvettes/<?= htmlspecialchars($buvette['image_buvette']) ?>"
+                                         class="img-fluid rounded-3"
+                                         style="max-height: 220px; max-width: 100%;">
+                                <?php else: ?>
+                                    <div class="text-muted">
+                                        <i class="bi bi-image fs-1"></i>
+                                        <p class="mt-2">Aucune image</p>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                            <div>
+                                <label class="btn btn-outline-primary rounded-pill px-4">
+                                    <i class="bi bi-upload me-2"></i>
+                                    Changer l'image
+                                    <input type="file" name="image_file" class="d-none" accept="image/*">
+                                </label>
+                                <p class="text-muted small mt-2">JPG, PNG, GIF, WEBP (max 5MB)</p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-8">
+                            <div class="mb-4">
+                                <label class="form-label fw-bold fs-5">Nom de la buvette *</label>
+                                <input type="text"
+                                       name="nom"
+                                       class="form-control form-control-lg rounded-pill"
+                                       value="<?= htmlspecialchars($buvette['nom']) ?>"
+                                       placeholder="Ex: Le QG"
+                                       maxlength="50"
+                                       required>
+                                <small class="text-muted">Maximum 50 caractères</small>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold fs-5">Description</label>
+                                <textarea name="description"
+                                          class="form-control rounded-4"
+                                          rows="5"
+                                          placeholder="Décrivez votre buvette en quelques mots..."
+                                          maxlength="255"><?= htmlspecialchars($buvette['description'] ?? '') ?></textarea>
+                                <small class="text-muted">Maximum 255 caractères</small>
+                            </div>
+
+                            <div class="alert alert-info rounded-4 d-flex align-items-center">
+                                <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                                <div>
+                                    <strong>Important :</strong> Ces informations seront visibles par tous les utilisateurs
+                                    de votre buvette.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-end gap-3">
+                        <a href="index.php?module=gestionnaire&id_buvette=<?= $buvette['id_buvette'] ?>"
+                           class="btn btn-outline-secondary rounded-pill px-5 py-3">
+                            ANNULER
+                        </a>
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 fw-bold">
+                            <i class="bi bi-check-circle me-2"></i>
+                            ENREGISTRER LES MODIFICATIONS
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
         <?php

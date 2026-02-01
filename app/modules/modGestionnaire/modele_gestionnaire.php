@@ -537,4 +537,38 @@ class ModeleGestionnaire {
             return false;
         }
     }
+
+    public function getDetailsBuvette($id_buvette) {
+        $bdd = Connexion::getBdd();
+        $req = $bdd->prepare("SELECT * FROM une_buvette WHERE id_buvette = ?");
+        $req->execute([$id_buvette]);
+        return $req->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function modifierProfilBuvette($id_buvette, $nom, $description, $nom_image = null) {
+        $bdd = Connexion::getBdd();
+        try {
+            if ($nom_image) {
+                $req = $bdd->prepare("UPDATE une_buvette SET nom = ?, description = ?, image_buvette = ? WHERE id_buvette = ?");
+                $req->execute([$nom, $description, $nom_image, $id_buvette]);
+            } else {
+                $req = $bdd->prepare("UPDATE une_buvette SET nom = ?, description = ? WHERE id_buvette = ?");
+                $req->execute([$nom, $description, $id_buvette]);
+            }
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    public function toggleOuvertureBuvette($id_buvette) {
+        $bdd = Connexion::getBdd();
+        try {
+            $req = $bdd->prepare("UPDATE une_buvette SET est_ouverte = NOT est_ouverte WHERE id_buvette = ?");
+            $req->execute([$id_buvette]);
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
 }

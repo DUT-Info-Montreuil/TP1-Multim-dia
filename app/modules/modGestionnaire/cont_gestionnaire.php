@@ -65,7 +65,7 @@ class ContGestionnaire {
                 if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === 0) {
                     $extension = strtolower(pathinfo($_FILES['image_file']['name'], PATHINFO_EXTENSION));
                     $nom_image = uniqid('prod_') . "." . $extension;
-                    move_uploaded_file($_FILES['image_file']['tmp_name'], 'public/img/' . $nom_image);
+                    move_uploaded_file($_FILES['image_file']['tmp_name'], 'public/img/produits/' . $nom_image);
                 }
 
                 if ($this->modele->creerEtAjouterProduit($id_buvette, $_POST['nom'], $_POST['prix'], $_POST['description'], $nom_image, $_POST['type_produit'])) {
@@ -264,6 +264,73 @@ class ContGestionnaire {
                 }
 
                 header("Location: index.php?module=gestionnaire&action=details_fidelite&id_client=$id_client&id_buvette=$id_buvette");
+                exit();
+
+            case 'profil':
+                $buvette = $this->modele->getDetailsBuvette($id_buvette);
+                $this->vue->afficherProfilBuvette($buvette, $token);
+                break;
+
+            case 'modifier_profil':
+                if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
+                    die("CSRF Error");
+                }
+
+                $nom = trim($_POST['nom'] ?? '');
+                $description = trim($_POST['description'] ?? '');
+                $nom_image = null;
+
+                if (empty($nom)) {
+                    $_SESSION['notif'] = "Le nom est obligatoire";
+                    header("Location: index.php?module=gestionnaire&action=profil&id_buvette=$id_buvette");
+                    exit();
+                }
+
+                if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
+                    $extensions_autorisees = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                    $extension = strtolower(pathinfo($_FILES['image_file']['name'], PATHINFO_EXTENSION));
+
+                    if (!in_array($extension, $extensions_autorisees)) {
+                        $_SESSION['notif'] = "Format d'image non autorisé";
+                        header("Location: index.php?module=gestionnaire&action=profil&id_buvette=$id_buvette");
+                        exit();
+                    }
+
+                    $nom_image = 'buvette_' . $id_buvette . '_' . time() . '.' . $extension;
+                    $chemin_destination = __DIR__ . '/../../../public/img/buvettes/' . $nom_image;
+
+                    if (!file_exists(dirname($chemin_destination))) {
+                        mkdir(dirname($chemin_destination), 0755, true);
+                    }
+
+                    if (!move_uploaded_file($_FILES['image_file']['tmp_name'], $chemin_destination)) {
+                        $_SESSION['notif'] = "Erreur lors de l'upload de l'image";
+                        header("Location: index.php?module=gestionnaire&action=profil&id_buvette=$id_buvette");
+                        exit();
+                    }
+                }
+
+                if ($this->modele->modifierProfilBuvette($id_buvette, $nom, $description, $nom_image)) {
+                    $_SESSION['notif'] = "Profil de la buvette modifié avec succès";
+                } else {
+                    $_SESSION['notif'] = "Erreur lors de la modification";
+                }
+
+                header("Location: index.php?module=gestionnaire&action=profil&id_buvette=$id_buvette");
+                exit();
+
+            case 'toggle_ouverture':
+                if (!isset($_POST['csrf_token']) || !$this->csrf->validate($_POST['csrf_token'])) {
+                    die("CSRF Error");
+                }
+
+                if ($this->modele->toggleOuvertureBuvette($id_buvette)) {
+                    $_SESSION['notif'] = "Statut d'ouverture modifié avec succès";
+                } else {
+                    $_SESSION['notif'] = "Erreur lors du changement de statut";
+                }
+
+                header("Location: index.php?module=gestionnaire&id_buvette=$id_buvette");
                 exit();
         }
     }
