@@ -1,7 +1,6 @@
 <?php
 class VueGestionnaire {
 
-    // ==================== PRODUITS ====================
     public function afficherFormulaireNouveauProduit($id_buvette, $token, $types) {
         ?>
         <div class="container mt-5 pt-5">
@@ -301,7 +300,6 @@ class VueGestionnaire {
         <?php
     }
 
-    // ==================== SÉLECTION BUVETTE ====================
     public function afficherSelectionBuvette($buvettes) {
         ?>
         <div class="container mt-5 pt-5 text-center">
@@ -319,7 +317,7 @@ class VueGestionnaire {
         <?php
     }
 
-    // ==================== ADHÉSIONS ====================
+
     public function afficherGestionAdhesions($id_buvette, $membres, $demandes, $token) {
         ?>
         <div class="container mt-5 pt-5">
@@ -384,7 +382,7 @@ class VueGestionnaire {
         <?php
     }
 
-    // ==================== FOURNISSEURS ====================
+
     public function afficherListeFournisseurs($fournisseurs, $id_buvette, $token) {
         ?>
         <div class="container mt-5 pt-5">
@@ -410,7 +408,6 @@ class VueGestionnaire {
 
                                 <div class="d-flex gap-2">
                                     <a href="index.php?module=gestionnaire&action=details_fournisseur&id_fournisseur=<?= $f['id_fournisseur'] ?>&id_buvette=<?= $id_buvette ?>" class="btn btn-sm btn-outline-dark rounded-pill">Détails</a>
-                                    <a href="index.php?module=gestionnaire&action=commander&id_fournisseur=<?= $f['id_fournisseur'] ?>&id_buvette=<?= $id_buvette ?>" class="btn btn-sm btn-primary rounded-pill">Commander</a>
                                 </div>
                             </div>
                         </div>
@@ -517,7 +514,6 @@ class VueGestionnaire {
         <?php
     }
 
-    // ==================== COMMANDES FOURNISSEURS ====================
     public function afficherTresorerie($tresorerie, $mouvements, $stats, $id_buvette, $token) {
         ?>
         <div class="container mt-5 pt-5">
@@ -641,7 +637,7 @@ class VueGestionnaire {
         <?php
     }
 
-    // ==================== NOTIFICATIONS ====================
+
     public function afficherNotification($message, $type = 'success') {
         $bgClass = ($type === 'success') ? 'bg-success' : 'bg-danger';
         ?>
@@ -666,7 +662,6 @@ class VueGestionnaire {
         <?php
     }
 
-    // ==================== FIDÉLITÉ ====================
     public function afficherGestionFidelite($clients, $id_buvette) {
         ?>
         <div class="container mt-5 pt-5">
