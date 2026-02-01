@@ -10,6 +10,7 @@ class ModeleServeur {
                 FROM commande c
                 JOIN utilisateur u ON c.id_utilisateur = u.id_utilisateur
                 WHERE c.id_buvette = ? 
+                AND (c.statut != 'En cours' OR c.est_paye = 1)
                 ORDER BY c.date_commande DESC";
         $stmt = $bdd->prepare($sql);
         $stmt->execute([$idBuvette]);
