@@ -47,3 +47,20 @@ Aucun test automatisé : validation manuelle dans le navigateur (parcours client
 ## Points d'attention
 - `connexion.php` contient des identifiants BDD en clair : ne pas en ajouter d'autres, préférer variables d'environnement
 - Ne pas committer d'identifiants réels
+
+## Règles d'intervention
+- Travailler dans un seul périmètre à la fois
+- Ne jamais committer en secret : une branche et une PR dédiée par modification
+- Lancer les tests automatisés avant de proposer une PR
+- Accompagner tout correctif de sécurité d'un test
+- Expliquer tout changement de dépendance
+- Toujours répondre en français
+
+## Interdictions de lecture
+- Ne jamais lire les dépendances installées (`vendor/`, etc.)
+- Ne jamais lire les fichiers de verrouillage (`composer.lock`, `package-lock.json`)
+- Ne jamais lire les données, logs (`*.log`) ou fichiers générés
+
+## Communication Front / Back
+- Tout contrat de données front/back s'appuie sur `docs/API.md`
+- Ne pas lire tout le code de l'autre partie si le contrat y est documenté
