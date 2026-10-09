@@ -33,6 +33,12 @@ Vérification syntaxique rapide : `find . -name '*.php' -exec php -l {} \;`
 
 ## Tests
 Aucun test automatisé : validation manuelle dans le navigateur (parcours client, serveur, admin).
+Vérification effectuée (PHP 8.3.6, 59 fichiers `.php`) :
+- Dépendances : aucune à installer (ni `composer.json`, ni `package.json`) → pas de `composer install` / `npm install`
+- Tests : aucun (`phpunit.xml`, `tests/` absents) → rien à lancer
+- `for f in $(find . -name '*.php'); do php -l "$f"; done` → 0 erreur de syntaxe
+- Limite : sans base MySQL accessible, les pages ne peuvent pas être testées de bout en bout
+- Config : `.env.example` liste les variables BDD prévues, mais `connexion.php` ne les lit pas encore (identifiants en dur)
 
 ## Conventions observées
 - Chaque module contient 4 fichiers : `mod_x.php` (point d'entrée), `cont_x.php` (contrôleur, `exec()` qui route selon `$_GET['action']`, défaut `afficher`), `modele_x.php` (accès BDD), `vue_x.php` (affichage HTML)
