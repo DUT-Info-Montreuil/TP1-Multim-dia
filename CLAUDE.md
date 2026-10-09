@@ -49,18 +49,21 @@ Aucun test automatisé : validation manuelle dans le navigateur (parcours client
 - Ne pas committer d'identifiants réels
 
 ## Règles d'intervention
-- Travailler dans un seul périmètre à la fois
+- Un seul périmètre à la fois : un module `app/modules/modX/` OU une couche (présentation : `vue_*`, `template.php`, `public/` ; logique : `cont_*`, `modele_*`, `connexion.php`, `csrf.php`)
 - Ne jamais committer en secret : une branche et une PR dédiée par modification
-- Lancer les tests automatisés avant de proposer une PR
+- Lancer les tests automatisés avant de proposer une PR (aucun à ce jour : le signaler, exécuter au minimum `php -l`)
 - Accompagner tout correctif de sécurité d'un test
 - Expliquer tout changement de dépendance
 - Toujours répondre en français
 
-## Interdictions de lecture
-- Ne jamais lire les dépendances installées (`vendor/`, etc.)
-- Ne jamais lire les fichiers de verrouillage (`composer.lock`, `package-lock.json`)
+## Restrictions de lecture
+- Ne jamais lire `vendor/`, `node_modules/` ni les dépendances installées
+- Ne jamais lire `composer.lock`, `package-lock.json` ni autres fichiers de verrouillage
 - Ne jamais lire les données, logs (`*.log`) ou fichiers générés
+- Ne pas lire les images de `public/img/`
 
-## Communication Front / Back
-- Tout contrat de données front/back s'appuie sur `docs/API.md`
-- Ne pas lire tout le code de l'autre partie si le contrat y est documenté
+## Contrat vue / logique serveur
+- Le contrat (routes, paramètres, JSON AJAX, droits) doit être décrit dans `docs/API.md`
+- Hors du périmètre courant, s'appuyer sur ce document plutôt que lire le code des autres modules
+- Toute modification d'une route, d'un paramètre ou d'une réponse JSON met à jour `docs/API.md` dans la même PR
+- Si `docs/API.md` est absent ou incomplet : le créer/compléter dans une PR dédiée avant de continuer
