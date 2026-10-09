@@ -24,7 +24,7 @@ Interface et code en français.
 ## Installation et lancement
 ```bash
 # Pas de dépendances à installer. Prérequis : PHP 8+ avec pdo_mysql, accès à une base MySQL
-# 1. Adapter les identifiants BDD dans connexion.php
+# 1. Copier connexion.example.php en connexion.php et adapter les identifiants BDD
 # 2. Lancer (serveur intégré PHP) :
 php -S localhost:8000          # puis http://localhost:8000/
 # ou placer le dossier dans WAMP/XAMPP/Laragon
@@ -33,6 +33,12 @@ Vérification syntaxique rapide : `find . -name '*.php' -exec php -l {} \;`
 
 ## Tests
 Aucun test automatisé : validation manuelle dans le navigateur (parcours client, serveur, admin).
+Vérification effectuée (PHP 8.3.6, 59 fichiers `.php`) :
+- Dépendances : aucune à installer (ni `composer.json`, ni `package.json`) → pas de `composer install` / `npm install`
+- Tests : aucun (`phpunit.xml`, `tests/` absents) → rien à lancer
+- `for f in $(find . -name '*.php'); do php -l "$f"; done` → 0 erreur de syntaxe
+- Limite : sans base MySQL accessible, les pages ne peuvent pas être testées de bout en bout
+- Config : `connexion.example.php` est le modèle de `connexion.php` (même structure, valeurs fictives) ; `connexion.php` contient encore des identifiants en dur
 
 ## Conventions observées
 - Chaque module contient 4 fichiers : `mod_x.php` (point d'entrée), `cont_x.php` (contrôleur, `exec()` qui route selon `$_GET['action']`, défaut `afficher`), `modele_x.php` (accès BDD), `vue_x.php` (affichage HTML)
