@@ -67,9 +67,3 @@ Vérification effectuée (PHP 8.3.6, 59 fichiers `.php`) :
 - Ne jamais lire `composer.lock`, `package-lock.json` ni autres fichiers de verrouillage
 - Ne jamais lire les données, logs (`*.log`) ou fichiers générés
 - Ne pas lire les images de `public/img/`
-
-## Contrat vue / logique serveur
-- Le contrat (routes, paramètres, JSON AJAX, droits) doit être décrit dans `docs/API.md`
-- Hors du périmètre courant, s'appuyer sur ce document plutôt que lire le code des autres modules
-- Toute modification d'une route, d'un paramètre ou d'une réponse JSON met à jour `docs/API.md` dans la même PR
-- Si `docs/API.md` est absent ou incomplet : le créer/compléter dans une PR dédiée avant de continuer
