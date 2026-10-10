@@ -880,28 +880,3 @@ contrôle), soit par un test réellement exécuté et reproduit dans ce document
   (interpolation directe d'une variable utilisateur dans `header()`), mais invalidée par
   un test réel démontrant que PHP 8.3.6 (version conforme au prérequis `8.0+` de
   `CLAUDE.md`) bloque nativement l'injection de sauts de ligne dans les en-têtes HTTP.
-
-### 4.2 Observation ou point d'amélioration identifié par un membre du groupe
-Aucune observation humaine n'a été transmise à cette session d'audit. Tous les constats
-de ce document proviennent exclusivement de l'analyse assistée par IA décrite en section
-1. Si un membre de l'équipe souhaite verser une observation issue d'une relecture
-manuelle, elle devra être ajoutée ici avec son auteur explicitement nommé, sans être
-attribuée par défaut à l'IA.
-
-### 4.3 Type de prompt le plus efficace et pourquoi
-La démarche la plus efficace a été la **progression en quatre temps** décrite en section
-1.2 plutôt qu'une demande unique de type « trouve des vulnérabilités » :
-1. une **cartographie** initiale a évité de partir d'hypothèses non situées dans le code ;
-2. des **audits ciblés par catégorie**, chacun formulé avec une consigne explicite de
-   chercher aussi les protections existantes avant de qualifier un risque, ont réduit le
-   nombre de faux positifs dès la première passe (plutôt que de les détecter seulement a
-   posteriori) ;
-3. une **passe de vérification critique** finale, qui imposait de relire le code exact du
-   dépôt, de retracer le cheminement complet des données et d'exécuter un test chaque fois
-   que possible, a permis de distinguer explicitement un rendu dangereux théorique d'un
-   comportement réellement démontré — c'est cette dernière passe qui a produit les
-   preuves techniques reproduites dans ce document (sorties de tests réelles, jamais
-   simulées).
-Une consigne répétée et utile à chaque étape a été l'obligation explicite de **séparer
-les faits observés des hypothèses à vérifier**, qui a empêché la requalification abusive
-d'une absence de preuve en vulnérabilité confirmée, et inversement.
