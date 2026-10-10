@@ -33,6 +33,9 @@ composer.phar
 .env.local
 .env.backup
 
+# Identifiants BDD (AUDIT-013) : le modèle versionné est connexion.example.php
+/connexion.php
+
 # Frameworks / caches / stockage (Laravel / Symfony etc.)
 storage/
 var/
