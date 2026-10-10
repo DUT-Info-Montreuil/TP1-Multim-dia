@@ -38,16 +38,6 @@ class ContGestionnaire {
             return;
         }
 
-        // AUDIT-006 : l'utilisateur doit gérer la buvette demandée
-        $idsAutorises = array_map('intval', array_column(
-            $this->modele->getBuvettesAutorisees($id_user), 'id_buvette'
-        ));
-        if (!ctype_digit((string)$id_buvette) || !in_array((int)$id_buvette, $idsAutorises, true)) {
-            $_SESSION['notif'] = "Accès refusé : vous ne gérez pas cette buvette.";
-            header('Location: index.php?module=gestionnaire');
-            exit();
-        }
-
         switch($action) {
             case 'liste':
             default:
