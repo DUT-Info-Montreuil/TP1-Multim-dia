@@ -3,27 +3,6 @@ require_once __DIR__ . '/../../../connexion.php';
 
 class ModeleServeur {
 
-    // AUDIT-007 : l'utilisateur doit être serveur (ou gestionnaire) affecté à cette buvette
-    public function estAffecteABuvette($idUtilisateur, $idBuvette) {
-        $bdd = Connexion::getBdd();
-        $stmt = $bdd->prepare("
-            SELECT COUNT(*) FROM affecter a
-            INNER JOIN role_utilisateur r ON a.id_role = r.id_role
-            WHERE a.id_utilisateur = ? AND a.id_buvette = ?
-            AND r.nom_role IN ('Serveur', 'Gestionnaire')
-            AND (a.date_fin IS NULL OR a.date_fin >= CURDATE())");
-        $stmt->execute([$idUtilisateur, $idBuvette]);
-        return $stmt->fetchColumn() > 0;
-    }
-
-    // AUDIT-007 : la commande doit appartenir à la buvette de l'utilisateur
-    public function commandeAppartientABuvette($idCommande, $idBuvette) {
-        $bdd = Connexion::getBdd();
-        $stmt = $bdd->prepare("SELECT COUNT(*) FROM commande WHERE id_commande = ? AND id_buvette = ?");
-        $stmt->execute([$idCommande, $idBuvette]);
-        return $stmt->fetchColumn() > 0;
-    }
-
     public function getListeReservations($idBuvette) {
         $bdd = Connexion::getBdd();
         // On récupère aussi les commandes en "Attente Validation" pour que le serveur sache qu'il a envoyé une demande
