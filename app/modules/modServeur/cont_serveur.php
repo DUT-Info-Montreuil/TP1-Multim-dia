@@ -14,19 +14,9 @@ class ContServeur {
     public function exec() {
         $action = isset($_GET['action']) ? $_GET['action'] : 'dashboard';
 
-        // Gestion ID Buvette (AUDIT-007 : l'utilisateur doit être affecté à la buvette demandée)
-        $idDemande = $_GET['id_buvette'] ?? ($_SESSION['id_buvette'] ?? null);
-        if ($idDemande !== null) {
-            $idUser = $_SESSION['user']['id_utilisateur'] ?? null;
-            if ($idUser && is_scalar($idDemande) && ctype_digit((string)$idDemande)
-                && $this->modele->estAffecteABuvette($idUser, (int)$idDemande)) {
-                $_SESSION['id_buvette'] = (int)$idDemande;
-            } else {
-                unset($_SESSION['id_buvette']);
-                $_SESSION['notif'] = "Accès refusé : vous n'êtes pas affecté à cette buvette.";
-                header('Location: index.php?module=buvettes');
-                exit();
-            }
+        // Gestion ID Buvette
+        if (isset($_GET['id_buvette'])) {
+            $_SESSION['id_buvette'] = (int)$_GET['id_buvette'];
         }
         $idBuvette = isset($_SESSION['id_buvette']) ? $_SESSION['id_buvette'] : 0;
 
@@ -51,7 +41,7 @@ class ContServeur {
 
             // AVANCER DANS LE CYCLE
             case 'cycle_statut':
-                if (isset($_GET['id']) && isset($_GET['actuel']) && $this->modele->commandeAppartientABuvette($_GET['id'], $idBuvette)) {
+                if (isset($_GET['id']) && isset($_GET['actuel'])) {
                     $actuel = $_GET['actuel'];
                     $next = $actuel;
 
@@ -74,7 +64,7 @@ class ContServeur {
 
             // RECULER DANS LE CYCLE
             case 'revert_statut':
-                if (isset($_GET['id']) && isset($_GET['actuel']) && $this->modele->commandeAppartientABuvette($_GET['id'], $idBuvette)) {
+                if (isset($_GET['id']) && isset($_GET['actuel'])) {
                     $actuel = $_GET['actuel'];
                     $prev = $actuel;
 
@@ -92,19 +82,19 @@ class ContServeur {
                 break;
 
             case 'confirmer_commande':
-                if (isset($_POST['id_commande']) && $this->modele->commandeAppartientABuvette($_POST['id_commande'], $idBuvette)) {
+                if (isset($_POST['id_commande'])) {
                     $this->modele->changerStatut($_POST['id_commande'], 'Payé');
                 }
                 header("Location: index.php?module=serveur");
                 break;
 
             case 'annuler':
-                if (isset($_POST['id_commande']) && $this->modele->commandeAppartientABuvette($_POST['id_commande'], $idBuvette)) {
+                if (isset($_POST['id_commande'])) {
                     $statutActuel = $this->modele->getStatutCommande($_POST['id_commande']);
                     if ($statutActuel !== 'Attente Validation') {
                         $this->modele->annulerCommande($_POST['id_commande']);
                     }
-                } elseif (!isset($_POST['id_commande']) && isset($_GET['id']) && $this->modele->commandeAppartientABuvette($_GET['id'], $idBuvette)) {
+                } elseif (isset($_GET['id'])) {
                     $statutActuel = $this->modele->getStatutCommande($_GET['id']);
                     if ($statutActuel !== 'Attente Validation') {
                         $this->modele->annulerCommande($_GET['id']);
@@ -114,8 +104,7 @@ class ContServeur {
                 break;
 
             case 'changer_statut': // Pour le select box
-                if (isset($_POST['id_commande']) && isset($_POST['nouveau_statut'])
-                    && $this->modele->commandeAppartientABuvette($_POST['id_commande'], $idBuvette)) {
+                if (isset($_POST['id_commande']) && isset($_POST['nouveau_statut'])) {
                     $statutActuel = $this->modele->getStatutCommande($_POST['id_commande']);
                     $statutsAutorises = ['Préparation', 'Arrivé', 'Parti', 'Annulée', 'Annulé'];
                     if ($statutActuel && $statutActuel !== 'Attente Validation' && $statutActuel !== 'En attente confirmation'
